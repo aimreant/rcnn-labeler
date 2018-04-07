@@ -7,8 +7,9 @@ import os
 import glob
 from tkMessageBox import *
 
-
 ORIGIN_IMAGES_PATH = 'origin_images'
+LABELS_PATH = 'labels'
+COLORS = ['red', 'blue', 'cyan', 'green', 'black']
 
 
 class PreProcessingTool:
@@ -16,10 +17,6 @@ class PreProcessingTool:
         # Object parameters
         self.labels = StringVar()
         self.images = StringVar()
-        try:
-            self.load_labels_from_file()
-        except EOFError:
-            pass
 
         # Set main parameters -----------------------------------------------
         self.parent = master
@@ -61,7 +58,7 @@ class PreProcessingTool:
         self.label_list = Listbox(self.frame_label_list, selectmode=BROWSE, borderwidth=0, listvariable=self.labels)
         self.label_list.place(x=0, y=20, width=200, height=135)
 
-        # self.label_list.bind('<ButtonRelease-1>', self.print_test)
+        self.label_list.bind('<ButtonRelease-1>', self.select_label)
         self.scrollbar_label_list = Scrollbar(self.frame_label_list)
         self.scrollbar_label_list.pack(side=RIGHT, fill=Y)
         self.label_list.configure(yscrollcommand=self.scrollbar_label_list.set)
@@ -95,6 +92,8 @@ class PreProcessingTool:
 
         # TODO bind mousewheel to scrollbar on canvas
         # self.image_area.bind_all("<MouseWheel>", self._on_mousewheel)
+        self.image_area.bind("<Button-1>", self.canvas_on_mouse_click)
+        self.image_area.bind("<Motion>", self.canvas_on_mouse_move)
 
         # Build checkbox -----------------------------------------------------
         self.check_var_rotate = IntVar()
@@ -127,7 +126,36 @@ class PreProcessingTool:
         self.label_cur_scaling = Label(self.frame_console, text='0%')
         self.label_cur_scaling.grid(row=2, column=2, rowspan=2)
 
-        # Initial Operation
+        # Initial mouse and others in canvas
+        self.mouse_state = {
+            'click': False,
+            'x': 0,
+            'y': 0
+        }
+
+        self.labeled_list = []
+        self.labeled_list_origin = []
+        self.cur_label = {
+            'name': '',
+            'index': 0
+        }
+        self.x_line = None
+        self.y_line = None
+        self.box_id_list = []
+        self.box_id = None
+
+        self.cur_image = None
+        self.tk_image = None
+
+        self.cur_scaling = 0.0
+        self.cur_file_name = ''
+
+        try:
+            self.load_labels_from_pydb()
+        except EOFError:
+            pass
+
+        # Initial operation
         self.load_icon()
         # self.load_file_list()
         self.load_images()
@@ -150,6 +178,7 @@ class PreProcessingTool:
 
         # Get image list
         self.origin_images_dir = os.path.join('.', ORIGIN_IMAGES_PATH)
+        self.origin_labels_dir = os.path.join('.', LABELS_PATH)
         self.origin_images_list = glob.glob(os.path.join(self.origin_images_dir, '*.jpg'))
 
         if len(self.origin_images_list) == 0:
@@ -162,18 +191,9 @@ class PreProcessingTool:
 
         self.cur = 0
         self.total_images_size = len(self.origin_images_list)
-        # TODO load file list in origin_images
         for image in self.origin_images_list:
             file_name = image.split('/')[-1]
             self.insert_to_file_list(file_name)
-
-        # TODO load file-label in labels
-
-
-        # TODO load current image to canvas
-
-
-        self.cur_image_path = self.origin_images_list[self.cur]
 
     def insert_to_file_list(self, file_name, handled=False):
         if handled:
@@ -190,17 +210,29 @@ class PreProcessingTool:
             file_name_in_list_str = ' [x] ' + file_name
         self.file_list.delete(index)
         self.file_list.insert(index, file_name_in_list_str)
+        self.file_list.selection_set(index)
+
+    def mark_label(self, index, handled=True):
+        label_name = self.label_list.get(index)[5:]
+        if handled:
+            label_name_in_list_str = ' [v] ' + label_name
+        else:
+            label_name_in_list_str = ' [x] ' + label_name
+        self.label_list.delete(index)
+        self.label_list.insert(index, label_name_in_list_str)
+        self.label_list.selection_set(index)
 
     def select_image(self, event):
         print('select image: ' + self.file_list.get(self.file_list.curselection()))
+        self.image_area.delete("all")
 
         file_list_cur_selection = self.file_list.curselection()
         if not file_list_cur_selection:
             showerror("Loading error", 'Please contact with developers.')
             file_list_cur_selection = 1
         file_name_with_mark = self.file_list.get(file_list_cur_selection)
-        file_name = file_name_with_mark[5:]
-        file_path = os.path.join(self.origin_images_dir, file_name)
+        self.cur_file_name = file_name_with_mark[5:]
+        file_path = os.path.join(self.origin_images_dir, self.cur_file_name)
         self.cur_image = Image.open(file_path)
         self.cur_imagr_size = self.cur_image.size
         self.cur_image_origin = self.cur_image
@@ -223,6 +255,8 @@ class PreProcessingTool:
 
         self.image_area.configure(scrollregion=(0, 0, width, height))
 
+        self.load_label(self.cur_file_name)
+
     def zoom_in_image(self):
         self.zoom_image(True)
 
@@ -230,6 +264,8 @@ class PreProcessingTool:
         self.zoom_image(False)
 
     def zoom_image(self, bigger=True):
+        self.image_area.delete("all")
+
         if bigger:
             self.cur_scaling += 7
         else:
@@ -249,24 +285,96 @@ class PreProcessingTool:
 
         self.image_area.configure(scrollregion=(0, 0, width, height))
 
-    def _on_mousewheel(self, event):
+        index = 0
+        for label in self.labeled_list_origin:
+            box_id = self.image_area.create_rectangle(
+                label[1] * scaling_percent, label[2] * scaling_percent,  # x1, y1
+                label[3] * scaling_percent, label[4] * scaling_percent,  # x2, y2
+                width=1,
+                outline=COLORS[index % len(COLORS)]
+            )
+            index += 1
+
+    def canvas_on_mousewheel(self, event):
         self.image_area.yview_scroll(-1 * (event.delta / 20), "units")
+
+    def canvas_on_mouse_click(self, event):
+        if not self.tk_image:
+            # If the image not exists
+            return
+
+        if self.mouse_state['click']:
+            # Click second time
+            x1, x2 = min(self.mouse_state['x'], event.x), max(self.mouse_state['x'], event.x)
+            y1, y2 = min(self.mouse_state['y'], event.y), max(self.mouse_state['y'], event.y)
+
+            # Check if out of bound
+            if x2 > self.cur_image.size[0]:
+                x2 = self.cur_image.size[0]
+            if y2 > self.cur_image.size[1]:
+                y2 = self.cur_image.size[1]
+
+            self.labeled_list.append((self.cur_label['name'], x1, y1, x2, y2))
+
+            scaling_percent = self.cur_scaling * 0.01
+            x1, y1 = int(x1 / scaling_percent), int(y1 / scaling_percent)
+            x2, y2 = int(x2 / scaling_percent), int(y2 / scaling_percent)
+            self.labeled_list_origin.append((self.cur_label['name'], x1, y1, x2, y2))
+            self.box_id_list.append(self.box_id)
+            self.box_id = None
+
+            self.mark_label(self.cur_label['index'], True)
+
+            self.save_labels()
+
+        else:
+            # Click first time
+            self.mouse_state['x'], self.mouse_state['y'] = event.x, event.y
+
+        # Invert click boolean flag
+        self.mouse_state['click'] = not self.mouse_state['click']
+
+    def canvas_on_mouse_move(self, event):
+        if self.tk_image:
+            if self.x_line:
+                self.image_area.delete(self.x_line)
+            self.x_line = self.image_area.create_line(0, event.y, self.tk_image.width(), event.y, width=1)
+            if self.y_line:
+                self.image_area.delete(self.y_line)
+            self.y_line = self.image_area.create_line(event.x, 0, event.x, self.tk_image.height(), width=1)
+
+        if self.mouse_state['click']:
+            if self.box_id:
+                self.image_area.delete(self.box_id)
+            self.box_id = self.image_area.create_rectangle(
+                self.mouse_state['x'], self.mouse_state['y'],
+                event.x, event.y,
+                width=1,
+                outline=COLORS[len(self.labeled_list) % len(COLORS)]
+            )
+
+    def select_label(self, event):
+        label_list_cur_selection = self.label_list.curselection()
+        label_name_with_mark = self.label_list.get(label_list_cur_selection)
+        label_name = label_name_with_mark[5:]
+        self.cur_label['name'] = label_name
+        self.cur_label['index'] = label_list_cur_selection
 
     def add_label(self):
         if self.label_name.get() == '':
             showerror("Add label error", "Please write label name.")
         else:
             self.label_list.insert(END, ' [x] ' + self.label_name.get())
-        self.save_labels_to_file()
+        self.save_labels_to_pydb()
 
     def delete_label(self):
         if self.label_list.size() == 0:
             showerror("Delete label error", "No label.")
         else:
             self.label_list.delete(self.label_list.curselection())
-            self.save_labels_to_file()
+            self.save_labels_to_pydb()
 
-    def save_labels_to_file(self):
+    def save_labels_to_pydb(self):
         labels = []
         for i in range(0, self.label_list.size()):
             labels.append(self.label_list.get(i))
@@ -274,11 +382,55 @@ class PreProcessingTool:
         with open('label_pydb', 'wb') as f:
             pickle.dump(labels, f)
 
-    def load_labels_from_file(self):
+    def load_labels_from_pydb(self):
         with open('label_pydb', 'rb') as f:
             labels = pickle.load(f)
             self.labels.set(labels)
+        self.label_list.selection_set(0)
+            
+    def save_labels(self):
+        file_name = self.get_label_txt_name(self.cur_file_name)
+        label_file_path = os.path.join(self.origin_labels_dir, file_name)
+        with open(label_file_path, 'w') as f:
+            f.write('%d\n' % len(self.labeled_list_origin))
+            for label in self.labeled_list_origin:
+                f.write(' '.join(map(str, label)) + '\n')
 
+    def load_label(self, file_name):
+        # load label when select an image
+        self.labeled_list_origin = []
+        self.labeled_list = []
+
+        file_name = self.get_label_txt_name(file_name)
+        label_file_path = os.path.join(self.origin_labels_dir, file_name)
+        scaling_percent = self.cur_scaling * 0.01
+
+        if os.path.exists(label_file_path):
+            with open(label_file_path) as f:
+                index = 0
+                for (i, line) in enumerate(f):
+                    if i == 0:
+                        label_count = int(line.strip())
+                        continue
+                    tmp = [(t) for t in line.split()]
+
+                    tmp[1], tmp[2], tmp[3], tmp[4] = \
+                        int(tmp[1]), int(tmp[2]), int(tmp[3]), int(tmp[4])
+
+                    self.labeled_list_origin.append(tuple(tmp))
+
+                    tmp_id = self.image_area.create_rectangle(
+                        int(tmp[1]) * scaling_percent, int(tmp[2]) * scaling_percent,
+                        int(tmp[3]) * scaling_percent, int(tmp[4]) * scaling_percent,
+                        width=1,
+                        outline=COLORS[index % len(COLORS)]
+                    )
+                    index += 1
+
+    def get_label_txt_name(self, image_file_name):
+        name_strings = image_file_name.split('.')
+        name_strings[-1] = 'txt'
+        return '.'.join(name_strings)
 
 if __name__ == '__main__':
     root = Tk()
