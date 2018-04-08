@@ -10,6 +10,7 @@ from tkMessageBox import *
 ORIGIN_IMAGES_PATH = 'origin_images'
 LABELS_PATH = 'labels'
 COLORS = ['red', 'blue', 'cyan', 'green', 'black']
+SUPPORT_FORMAT = ['.jpg', '.jpeg', '.png']
 
 
 class PreProcessingTool:
@@ -177,7 +178,9 @@ class PreProcessingTool:
         # Get image list
         self.origin_images_dir = os.path.join('.', ORIGIN_IMAGES_PATH)
         self.origin_labels_dir = os.path.join('.', LABELS_PATH)
-        self.origin_images_list = glob.glob(os.path.join(self.origin_images_dir, '*.jpg'))
+        self.origin_images_list = []
+        for sf in SUPPORT_FORMAT:
+            self.origin_images_list += glob.glob(os.path.join(self.origin_images_dir, '*' + sf))
 
         if len(self.origin_images_list) == 0:
             showerror("No image", 'No ".jpg" images found in the specified dir  "' + ORIGIN_IMAGES_PATH + '"')
@@ -462,9 +465,10 @@ class PreProcessingTool:
                     index += 1
 
     def get_label_txt_name(self, image_file_name):
-        name_strings = image_file_name.split('.')
-        name_strings[-1] = 'txt'
-        return '.'.join(name_strings)
+        # name_strings = image_file_name.split('.')
+        # name_strings[-1] = 'txt'
+        # return '.'.join(name_strings)
+        return image_file_name + '.txt'
 
     def delete_label(self):
         # TODO
