@@ -12,8 +12,13 @@ LABELS_PATH = 'labels'
 COLORS = ['red', 'blue', 'cyan', 'green', 'black']
 SUPPORT_FORMAT = ['.jpg', '.jpeg', '.png']
 
+VIEW_MODE = 0
+CREATE_MODE = 1
+DELETE_MODE = 2
+MODE = [VIEW_MODE, CREATE_MODE, DELETE_MODE]
 
-class PreProcessingTool:
+
+class LabelTool:
     def __init__(self, master):
         # Object parameters
         self.labels = StringVar()
@@ -28,12 +33,18 @@ class PreProcessingTool:
         self.cur_image_size = None
         self.cur_image_origin = None
         self.box_total_index = 0  # for color
+        self.cur_mode = MODE[0]
 
         # Set main parameters -----------------------------------------------
         self.parent = master
-        self.parent.title("PreProcessingTool")
-        self.parent.geometry("800x500")
+        self.parent.title('RCNN-LABELER')
+        self.parent.geometry('900x500')
         self.parent.resizable(width=False, height=False)
+
+        # Build menu
+        self.menu = Menu(self.parent)
+        self.menu.add_command(label='Hello!')
+        self.parent.config(menu=self.menu)
 
         # Build frames ------------------------------------------------------
         self.frame = Frame(self.parent)
@@ -48,6 +59,8 @@ class PreProcessingTool:
         self.frame_image_area.place(x=200, y=0, width=600, height=350)
         self.frame_console = Frame(self.frame, bg="red")
         self.frame_console.place(x=200, y=350, width=600, height=150)
+        self.frame_mode = Frame(self.frame)
+        self.frame_mode.place(x=800, y=0, width=100, height=500)
 
         # Build file list ---------------------------------------------------
         self.file_list_label = Label(self.frame_file_list, text='Images directory', bg='gray', anchor='w')
@@ -87,7 +100,7 @@ class PreProcessingTool:
         self.delete_label_bottom.place(x=90, y=20, width=90, height=23)
 
         # Build canvas area --------------------------------------------------
-        self.image_area = Canvas(self.frame_image_area, cursor='tcross', width=600, height=350,
+        self.image_area = Canvas(self.frame_image_area, cursor='arrow', width=600, height=350,
                                  scrollregion=(0, 0, 600, 350))
         self.image_area.place(width=600, height=350)
 
@@ -105,6 +118,25 @@ class PreProcessingTool:
         # self.image_area.bind_all("<MouseWheel>", self._on_mousewheel)
         self.image_area.bind("<Button-1>", self.canvas_on_mouse_click)
         self.image_area.bind("<Motion>", self.canvas_on_mouse_move)
+
+        # Build mode frame -----------------------------------------------------
+        self.button_view_mode = Button(self.frame_mode, text='VIEW MODE', bitmap='hourglass',
+                                       command=self.switch_view_mode)
+        self.button_view_mode.place(x=10, y=10, width=80, height=80)
+        self.label_view_mode = Label(self.frame_mode, text='VIEW MODE')
+        self.label_view_mode.place(x=0, y=90, width=100, height=20)
+
+        self.button_create_mode = Button(self.frame_mode, text='CREATE MODE', bitmap='info',
+                                         command=self.switch_create_mode)
+        self.button_create_mode.place(x=10, y=120, width=80, height=80)
+        self.label_create_mode = Label(self.frame_mode, text='CREATE MODE')
+        self.label_create_mode.place(x=0, y=200, width=100, height=20)
+
+        self.button_delete_mode = Button(self.frame_mode, text='DELETE MODE', bitmap='error',
+                                         command=self.switch_delete_mode)
+        self.button_delete_mode.place(x=10, y=230, width=80, height=80)
+        self.label_delete_mode = Label(self.frame_mode, text='DELETE MODE')
+        self.label_delete_mode.place(x=0, y=310, width=100, height=20)
 
         # Build checkbox -----------------------------------------------------
         self.check_var_rotate = IntVar()
@@ -170,6 +202,7 @@ class PreProcessingTool:
         # Initial operation
         self.load_icon()
         self.load_images()
+        self.switch_view_mode()
 
     def load_icon(self):
         self.file_icon = PhotoImage(Image.open('icons/file.png'))
@@ -276,7 +309,6 @@ class PreProcessingTool:
         self.cur_image = self.cur_image.resize((width, height), Image.ANTIALIAS)
         self.tk_image = ImageTk.PhotoImage(self.cur_image)
         self.image_area.create_image(0, 0, image=self.tk_image, anchor=NW)
-
         self.image_area.configure(scrollregion=(0, 0, width, height))
 
         self.load_labels(self.cur_file_name)
@@ -306,87 +338,115 @@ class PreProcessingTool:
         self.cur_image = self.cur_image.resize((width, height), Image.ANTIALIAS)
         self.tk_image = ImageTk.PhotoImage(self.cur_image)
         self.image_area.create_image(0, 0, image=self.tk_image, anchor=NW)
-
         self.image_area.configure(scrollregion=(0, 0, width, height))
 
         self.flush_labels()
         self.flush_box()
         # index = 0
         for label in self.labeled_list_origin:
-            self.create_label_box(
+            box_id = self.create_label_box(
                 label[1] * scaling_percent, label[2] * scaling_percent,
                 label[3] * scaling_percent, label[4] * scaling_percent,
                 label[0]
             )
+            label[5] = box_id
             self.mark_label_by_name(label[0])
 
     def canvas_on_mousewheel(self, event):
         self.image_area.yview_scroll(-1 * (event.delta / 20), "units")
 
     def canvas_on_mouse_click(self, event):
-        if not self.tk_image:
-            # If the image not exists
-            return
+        if self.cur_mode == CREATE_MODE:
+            if not self.tk_image:
+                # If the image not exists
+                return
 
-        if self.mouse_state['click']:
-            # Click second time
-            x1, x2 = min(self.mouse_state['x'], event.x), max(self.mouse_state['x'], event.x)
-            y1, y2 = min(self.mouse_state['y'], event.y), max(self.mouse_state['y'], event.y)
+            if self.mouse_state['click']:
+                # Click second time
+                x1, x2 = min(self.mouse_state['x'], event.x), max(self.mouse_state['x'], event.x)
+                y1, y2 = min(self.mouse_state['y'], event.y), max(self.mouse_state['y'], event.y)
 
-            # Check if out of bound
-            if x2 > self.cur_image.size[0]:
-                x2 = self.cur_image.size[0]
-            if y2 > self.cur_image.size[1]:
-                y2 = self.cur_image.size[1]
+                # Check if out of bound
+                if x2 > self.cur_image.size[0]:
+                    x2 = self.cur_image.size[0]
+                if y2 > self.cur_image.size[1]:
+                    y2 = self.cur_image.size[1]
 
-            self.labeled_list.append((self.cur_label['name'], x1, y1, x2, y2))
+                self.labeled_list.append((self.cur_label['name'], x1, y1, x2, y2))
 
-            box_text_id = self.image_area.create_text(
-                x1,
-                y2,
-                text=self.cur_label['name'],
-            )
+                box_text_id = self.image_area.create_text(
+                    x1,
+                    y2,
+                    text=self.cur_label['name'],
+                )
 
+                scaling_percent = self.cur_scaling * 0.01
+                x1, y1 = int(x1 / scaling_percent), int(y1 / scaling_percent)
+                x2, y2 = int(x2 / scaling_percent), int(y2 / scaling_percent)
+                self.labeled_list_origin.append((self.cur_label['name'], x1, y1, x2, y2, self.box_id))
+
+                self.box_total_index += 1
+                self.box_id_list.append(self.box_id)
+                self.box_text_list[self.box_id] = box_text_id
+
+                self.box_id = None
+
+                self.mark_label(self.cur_label['index'], True)
+
+                self.save_labels()
+
+            else:
+                # Click first time
+                self.mouse_state['x'], self.mouse_state['y'] = event.x, event.y
+
+            # Invert click boolean flag
+            self.mouse_state['click'] = not self.mouse_state['click']
+
+        elif self.cur_mode == DELETE_MODE:
             scaling_percent = self.cur_scaling * 0.01
-            x1, y1 = int(x1 / scaling_percent), int(y1 / scaling_percent)
-            x2, y2 = int(x2 / scaling_percent), int(y2 / scaling_percent)
-            self.labeled_list_origin.append((self.cur_label['name'], x1, y1, x2, y2))
+            cur_x, cur_y = int(event.x / scaling_percent), int(event.y / scaling_percent)
 
-            self.box_total_index += 1
-            self.box_id_list.append(self.box_id)
-            self.box_text_list[self.box_id] = box_text_id
-
-            self.box_id = None
-
-            self.mark_label(self.cur_label['index'], True)
-
-            self.save_labels()
-
-        else:
-            # Click first time
-            self.mouse_state['x'], self.mouse_state['y'] = event.x, event.y
-
-        # Invert click boolean flag
-        self.mouse_state['click'] = not self.mouse_state['click']
+            for label in self.labeled_list_origin:
+                if label[1] < cur_x < label[3] and label[2] < cur_y < label[4]:
+                    self.labeled_list_origin.remove(label)
+                    self.delete_label_box(int(label[5]))
 
     def canvas_on_mouse_move(self, event):
-        if self.tk_image:
-            if self.x_line:
-                self.image_area.delete(self.x_line)
-            self.x_line = self.image_area.create_line(0, event.y, self.tk_image.width(), event.y, width=1)
-            if self.y_line:
-                self.image_area.delete(self.y_line)
-            self.y_line = self.image_area.create_line(event.x, 0, event.x, self.tk_image.height(), width=1)
+        if self.cur_mode == CREATE_MODE:
+            if self.tk_image:
+                if self.x_line:
+                    self.image_area.delete(self.x_line)
+                self.x_line = self.image_area.create_line(0, event.y, self.tk_image.width(), event.y, width=1)
+                if self.y_line:
+                    self.image_area.delete(self.y_line)
+                self.y_line = self.image_area.create_line(event.x, 0, event.x, self.tk_image.height(), width=1)
 
-        if self.mouse_state['click']:
-            if self.box_id:
-                self.image_area.delete(self.box_id)
-            self.box_id = self.image_area.create_rectangle(
-                self.mouse_state['x'], self.mouse_state['y'],
-                event.x, event.y,
-                width=1,
-                outline=COLORS[self.box_total_index % len(COLORS)]
-            )
+            if self.mouse_state['click']:
+                if self.box_id:
+                    self.image_area.delete(self.box_id)
+                self.box_id = self.image_area.create_rectangle(
+                    self.mouse_state['x'], self.mouse_state['y'],
+                    event.x, event.y,
+                    width=1,
+                    outline=COLORS[self.box_total_index % len(COLORS)]
+                )
+        elif self.cur_mode == DELETE_MODE:
+            if self.cur_scaling == 0:
+                return
+            scaling_percent = self.cur_scaling * 0.01
+            cur_x, cur_y = int(event.x / scaling_percent), int(event.y / scaling_percent)
+
+            # TODO when move mouse into the box area, change the style
+            # for label in self.labeled_list_origin:
+            #     if label[1] < cur_x < label[3] and label[2] < cur_y < label[4]:
+            #         self.image_area.delete(int(label[5]))
+            #         box_id = self.image_area.create_rectangle(
+            #             label[1] * scaling_percent, label[2] * scaling_percent,
+            #             label[3] * scaling_percent, label[4] * scaling_percent,
+            #             width=2,
+            #             outline=COLORS[self.box_total_index % len(COLORS)]
+            #         )
+            #         label[5] = box_id
 
     def select_label(self, event):
         label_list_cur_selection = self.label_list.curselection()
@@ -429,7 +489,7 @@ class PreProcessingTool:
         with open(label_file_path, 'w') as f:
             f.write('%d\n' % len(self.labeled_list_origin))
             for label in self.labeled_list_origin:
-                f.write(' '.join(map(str, label)) + '\n')
+                f.write(' '.join(map(str, label[:-1])) + '\n')
 
     def load_labels(self, file_name):
         # load label when select an image
@@ -454,18 +514,17 @@ class PreProcessingTool:
                     tmp[1], tmp[2], tmp[3], tmp[4] = \
                         int(tmp[1]), int(tmp[2]), int(tmp[3]), int(tmp[4])
 
-                    self.labeled_list_origin.append(tuple(tmp))
-
-                    self.create_label_box(
+                    box_id = self.create_label_box(
                         int(tmp[1]) * scaling_percent, int(tmp[2]) * scaling_percent,
                         int(tmp[3]) * scaling_percent, int(tmp[4]) * scaling_percent,
                         tmp[0],
                     )
+                    tmp.append(box_id)
+                    self.labeled_list_origin.append(tuple(tmp))
 
                     self.mark_label_by_name(tmp[0])
 
     def get_label_txt_name(self, image_file_name):
-        # Because of multiple formats
         return image_file_name + '.txt'
 
     def create_label_box(self, x1, y1, x2, y2, label_name):
@@ -483,11 +542,45 @@ class PreProcessingTool:
         self.box_text_list[box_id] = box_text_id
         self.box_total_index += 1
 
-    def delete_label_box(self):
-        # TODO
-        pass
+        return box_id
+
+    def delete_label_box(self, box_id):
+        self.image_area.delete(box_id)
+        self.box_id_list.remove(box_id)
+        self.image_area.delete(self.box_text_list[box_id])
+        self.box_text_list[box_id] = None
+        self.save_labels()
+
+    def switch_view_mode(self):
+        self.switch_mode(VIEW_MODE)
+
+    def switch_create_mode(self):
+        self.switch_mode(CREATE_MODE)
+
+    def switch_delete_mode(self):
+        self.switch_mode(DELETE_MODE)
+
+    def switch_mode(self, mode):
+        if mode in MODE:
+            self.cur_mode = mode
+            self.button_view_mode.configure(state='normal')
+            self.button_create_mode.configure(state='normal')
+            self.button_delete_mode.configure(state='normal')
+
+            self.image_area.delete(self.x_line)
+            self.image_area.delete(self.y_line)
+
+            if mode == VIEW_MODE:
+                self.image_area.configure(cursor='arrow')
+                self.button_view_mode.configure(state='disabled')
+            elif mode == CREATE_MODE:
+                self.image_area.configure(cursor='tcross')
+                self.button_create_mode.configure(state='disabled')
+            elif mode == DELETE_MODE:
+                self.image_area.configure(cursor='diamond_cross')
+                self.button_delete_mode.configure(state='disabled')
 
 if __name__ == '__main__':
     root = Tk()
-    tool = PreProcessingTool(root)
+    tool = LabelTool(root)
     root.mainloop()
