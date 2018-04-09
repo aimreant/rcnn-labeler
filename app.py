@@ -27,6 +27,7 @@ class PreProcessingTool:
         self.total_images_size = None
         self.cur_image_size = None
         self.cur_image_origin = None
+        self.box_total_index = 0  # for color
 
         # Set main parameters -----------------------------------------------
         self.parent = master
@@ -152,6 +153,7 @@ class PreProcessingTool:
         self.x_line = None
         self.y_line = None
         self.box_id_list = []
+        self.box_text_list = {}
         self.box_id = None
 
         self.cur_image = None
@@ -239,6 +241,11 @@ class PreProcessingTool:
         for i in range(0, self.label_list.size()):
             self.mark_label(i, False, False)
 
+    def flush_box(self):
+        self.box_total_index = 0
+        self.box_id_list = []
+        self.box_text_list = {}
+
     def select_image(self, event):
         print('select image: ' + self.file_list.get(self.file_list.curselection()))
         self.image_area.delete("all")
@@ -272,7 +279,7 @@ class PreProcessingTool:
 
         self.image_area.configure(scrollregion=(0, 0, width, height))
 
-        self.load_label(self.cur_file_name)
+        self.load_labels(self.cur_file_name)
 
     def zoom_in_image(self):
         self.zoom_image(True)
@@ -303,21 +310,15 @@ class PreProcessingTool:
         self.image_area.configure(scrollregion=(0, 0, width, height))
 
         self.flush_labels()
-        index = 0
+        self.flush_box()
+        # index = 0
         for label in self.labeled_list_origin:
-            self.image_area.create_rectangle(
-                label[1] * scaling_percent, label[2] * scaling_percent,  # x1, y1
-                label[3] * scaling_percent, label[4] * scaling_percent,  # x2, y2
-                width=1,
-                outline=COLORS[index % len(COLORS)]
-            )
-            self.image_area.create_text(
-                label[1] * scaling_percent,
-                label[4] * scaling_percent,
-                text=label[0],
+            self.create_label_box(
+                label[1] * scaling_percent, label[2] * scaling_percent,
+                label[3] * scaling_percent, label[4] * scaling_percent,
+                label[0]
             )
             self.mark_label_by_name(label[0])
-            index += 1
 
     def canvas_on_mousewheel(self, event):
         self.image_area.yview_scroll(-1 * (event.delta / 20), "units")
@@ -340,7 +341,7 @@ class PreProcessingTool:
 
             self.labeled_list.append((self.cur_label['name'], x1, y1, x2, y2))
 
-            self.image_area.create_text(
+            box_text_id = self.image_area.create_text(
                 x1,
                 y2,
                 text=self.cur_label['name'],
@@ -350,7 +351,11 @@ class PreProcessingTool:
             x1, y1 = int(x1 / scaling_percent), int(y1 / scaling_percent)
             x2, y2 = int(x2 / scaling_percent), int(y2 / scaling_percent)
             self.labeled_list_origin.append((self.cur_label['name'], x1, y1, x2, y2))
+
+            self.box_total_index += 1
             self.box_id_list.append(self.box_id)
+            self.box_text_list[self.box_id] = box_text_id
+
             self.box_id = None
 
             self.mark_label(self.cur_label['index'], True)
@@ -380,7 +385,7 @@ class PreProcessingTool:
                 self.mouse_state['x'], self.mouse_state['y'],
                 event.x, event.y,
                 width=1,
-                outline=COLORS[len(self.labeled_list) % len(COLORS)]
+                outline=COLORS[self.box_total_index % len(COLORS)]
             )
 
     def select_label(self, event):
@@ -426,7 +431,7 @@ class PreProcessingTool:
             for label in self.labeled_list_origin:
                 f.write(' '.join(map(str, label)) + '\n')
 
-    def load_label(self, file_name):
+    def load_labels(self, file_name):
         # load label when select an image
         self.labeled_list_origin = []
         self.labeled_list = []
@@ -436,9 +441,10 @@ class PreProcessingTool:
         scaling_percent = self.cur_scaling * 0.01
 
         self.flush_labels()
+        self.flush_box()
         if os.path.exists(label_file_path):
             with open(label_file_path) as f:
-                index = 0
+                # index = 0
                 for (i, line) in enumerate(f):
                     if i == 0:
                         int(line.strip())
@@ -450,27 +456,34 @@ class PreProcessingTool:
 
                     self.labeled_list_origin.append(tuple(tmp))
 
-                    tmp_id = self.image_area.create_rectangle(
+                    self.create_label_box(
                         int(tmp[1]) * scaling_percent, int(tmp[2]) * scaling_percent,
                         int(tmp[3]) * scaling_percent, int(tmp[4]) * scaling_percent,
-                        width=1,
-                        outline=COLORS[index % len(COLORS)]
+                        tmp[0],
                     )
-                    self.image_area.create_text(
-                        int(tmp[1]) * scaling_percent,
-                        int(tmp[4]) * scaling_percent,
-                        text=tmp[0],
-                    )
+
                     self.mark_label_by_name(tmp[0])
-                    index += 1
 
     def get_label_txt_name(self, image_file_name):
-        # name_strings = image_file_name.split('.')
-        # name_strings[-1] = 'txt'
-        # return '.'.join(name_strings)
+        # Because of multiple formats
         return image_file_name + '.txt'
 
-    def delete_label(self):
+    def create_label_box(self, x1, y1, x2, y2, label_name):
+        box_id = self.image_area.create_rectangle(
+            int(x1), int(y1),
+            int(x2), int(y2),
+            width=1,
+            outline=COLORS[self.box_total_index % len(COLORS)]
+        )
+        box_text_id = self.image_area.create_text(
+            int(x1), int(y2),
+            text=label_name,
+        )
+        self.box_id_list.append(box_id)
+        self.box_text_list[box_id] = box_text_id
+        self.box_total_index += 1
+
+    def delete_label_box(self):
         # TODO
         pass
 
