@@ -27,6 +27,7 @@ class LabelTool:
         self.origin_images_dir = None
         self.origin_labels_dir = None
         self.origin_images_list = None
+        self.cur_box_color_map = {}
         self.labels_dir = None
         self.cur = None
         self.total_images_size = None
@@ -284,6 +285,7 @@ class LabelTool:
         self.box_total_index = 0
         self.box_id_list = []
         self.box_text_list = {}
+        self.cur_box_color_map = {}
 
     def select_image(self, event):
         self.image_area.delete("all")
@@ -393,9 +395,10 @@ class LabelTool:
                 x2, y2 = int(x2 / scaling_percent), int(y2 / scaling_percent)
                 self.labeled_list_origin.append((self.cur_label['name'], x1, y1, x2, y2, self.box_id))
 
-                self.box_total_index += 1
+                self.cur_box_color_map[self.box_id] = COLORS[self.box_total_index % len(COLORS)]
                 self.box_id_list.append(self.box_id)
                 self.box_text_list[self.box_id] = box_text_id
+                self.box_total_index += 1
 
                 self.box_id = None
                 self.mark_label(self.cur_label['index'], True)
@@ -437,23 +440,34 @@ class LabelTool:
                     outline=COLORS[self.box_total_index % len(COLORS)]
                 )
         elif self.cur_mode == DELETE_MODE:
-            # TODO need to response when move into box when in DELETE MODE
+            scaling_percent = self.cur_scaling * 0.01
             cur_in_label_flag = False
             for label in self.labeled_list_origin:
                 if label[1] < cur_x_origin < label[3] and label[2] < cur_y_origin < label[4]:
                     cur_in_label_flag = True
+                    # Create box cross
                     if self.tk_image:
                         if self.cross_line_1:
                             self.image_area.delete(self.cross_line_1)
-                        self.cross_line_1 = self.image_area.create_line(label[1], label[2], label[3], label[4], width=1)
+                        self.cross_line_1 = self.image_area.create_line(
+                            label[1] * scaling_percent, label[2] * scaling_percent,
+                            label[3] * scaling_percent, label[4] * scaling_percent,
+                            width=1,
+                            fill=self.cur_box_color_map[label[5]]
+                        )
                         if self.cross_line_2:
                             self.image_area.delete(self.cross_line_2)
-                        self.cross_line_2 = self.image_area.create_line(label[1], label[4], label[3], label[2], width=1)
+                        self.cross_line_2 = self.image_area.create_line(
+                            label[1] * scaling_percent, label[4] * scaling_percent,
+                            label[3] * scaling_percent, label[2] * scaling_percent,
+                            width=1,
+                            fill=self.cur_box_color_map[label[5]]
+                        )
 
-            # if cur_in_label_flag:
-            #     self.image_area.configure(cursor='diamond_cross')
-            # else:
-            #     self.image_area.configure(cursor='arrow')
+            if not cur_in_label_flag:
+                # Delete box cross if mouse out of box
+                self.image_area.delete(self.cross_line_1)
+                self.image_area.delete(self.cross_line_2)
 
     def select_label(self, event):
         label_list_cur_selection = self.label_list.curselection()
@@ -547,6 +561,7 @@ class LabelTool:
         )
         self.box_id_list.append(box_id)
         self.box_text_list[box_id] = box_text_id
+        self.cur_box_color_map[box_id] = COLORS[self.box_total_index % len(COLORS)]
         self.box_total_index += 1
 
         return box_id
@@ -556,8 +571,14 @@ class LabelTool:
         self.box_id_list.remove(box_id)
         self.image_area.delete(self.box_text_list[box_id])
         self.box_text_list[box_id] = None
+
+        # Delete box cross
+        self.image_area.delete(self.cross_line_1)
+        self.image_area.delete(self.cross_line_2)
+
+        # Refresh label marks
         self.save_labels()
-        # TODO mark label list
+        self.load_labels(self.cur_file_name)
 
     def switch_view_mode(self):
         self.switch_mode(VIEW_MODE)
@@ -577,6 +598,8 @@ class LabelTool:
 
             self.image_area.delete(self.x_line)
             self.image_area.delete(self.y_line)
+            self.image_area.delete(self.cross_line_1)
+            self.image_area.delete(self.cross_line_2)
 
             if mode == VIEW_MODE:
                 self.image_area.configure(cursor='arrow')
