@@ -1,8 +1,10 @@
-(S' [x] test1'
+(S' [x] nolabel'
 p0
-S' [x] test2'
+S' [x] test1'
 p1
-S' [x] test3'
+S' [x] test2'
 p2
-tp3
+S' [x] test3'
+p3
+tp4
 .

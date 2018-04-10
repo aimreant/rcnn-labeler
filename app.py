@@ -168,6 +168,10 @@ class LabelTool:
         self.button_images_zoom_2.grid(row=1, column=2, rowspan=2)
         self.label_cur_scaling = Label(self.frame_console, text='0%')
         self.label_cur_scaling.grid(row=2, column=2, rowspan=2)
+        self.label_cur_cursor = Label(self.frame_console, text='')
+        self.label_cur_cursor.grid(row=4, column=2, rowspan=2)
+        self.label_tmp = Label(self.frame_console, text='')
+        self.label_tmp.grid(row=6, column=2, rowspan=2)
 
         # Initial mouse and others in canvas
         self.mouse_state = {
@@ -179,11 +183,13 @@ class LabelTool:
         self.labeled_list = []
         self.labeled_list_origin = []
         self.cur_label = {
-            'name': '',
+            'name': 'nolabel',
             'index': 0
         }
         self.x_line = None
         self.y_line = None
+        self.cross_line_1 = None
+        self.cross_line_2 = None
         self.box_id_list = []
         self.box_text_list = {}
         self.box_id = None
@@ -280,7 +286,6 @@ class LabelTool:
         self.box_text_list = {}
 
     def select_image(self, event):
-        print('select image: ' + self.file_list.get(self.file_list.curselection()))
         self.image_area.delete("all")
 
         file_list_cur_selection = self.file_list.curselection()
@@ -349,13 +354,16 @@ class LabelTool:
                 label[3] * scaling_percent, label[4] * scaling_percent,
                 label[0]
             )
-            label[5] = box_id
+            label = (label[0], label[1], label[2], label[3], label[4], box_id)
             self.mark_label_by_name(label[0])
 
     def canvas_on_mousewheel(self, event):
         self.image_area.yview_scroll(-1 * (event.delta / 20), "units")
 
     def canvas_on_mouse_click(self, event):
+        cur_x, cur_y, cur_x_origin, cur_y_origin = self.get_current_xy_with_scrollbar(event.x, event.y)
+        self.label_cur_cursor.config(text=str(cur_x_origin) + ', ' + str(cur_y_origin))
+
         if self.cur_mode == CREATE_MODE:
             if not self.tk_image:
                 # If the image not exists
@@ -363,8 +371,8 @@ class LabelTool:
 
             if self.mouse_state['click']:
                 # Click second time
-                x1, x2 = min(self.mouse_state['x'], event.x), max(self.mouse_state['x'], event.x)
-                y1, y2 = min(self.mouse_state['y'], event.y), max(self.mouse_state['y'], event.y)
+                x1, x2 = min(self.mouse_state['x'], cur_x), max(self.mouse_state['x'], cur_x)
+                y1, y2 = min(self.mouse_state['y'], cur_y), max(self.mouse_state['y'], cur_y)
 
                 # Check if out of bound
                 if x2 > self.cur_image.size[0]:
@@ -390,63 +398,62 @@ class LabelTool:
                 self.box_text_list[self.box_id] = box_text_id
 
                 self.box_id = None
-
                 self.mark_label(self.cur_label['index'], True)
-
                 self.save_labels()
 
             else:
                 # Click first time
-                self.mouse_state['x'], self.mouse_state['y'] = event.x, event.y
+                self.mouse_state['x'], self.mouse_state['y'] = cur_x, cur_y
 
             # Invert click boolean flag
             self.mouse_state['click'] = not self.mouse_state['click']
 
         elif self.cur_mode == DELETE_MODE:
-            scaling_percent = self.cur_scaling * 0.01
-            cur_x, cur_y = int(event.x / scaling_percent), int(event.y / scaling_percent)
-
             for label in self.labeled_list_origin:
-                if label[1] < cur_x < label[3] and label[2] < cur_y < label[4]:
+                if label[1] < cur_x_origin < label[3] and label[2] < cur_y_origin < label[4]:
                     self.labeled_list_origin.remove(label)
                     self.delete_label_box(int(label[5]))
 
     def canvas_on_mouse_move(self, event):
+        cur_x, cur_y, cur_x_origin, cur_y_origin = self.get_current_xy_with_scrollbar(event.x, event.y)
+        self.label_cur_cursor.config(text=str(cur_x_origin) + ', ' + str(cur_y_origin))
+
         if self.cur_mode == CREATE_MODE:
             if self.tk_image:
                 if self.x_line:
                     self.image_area.delete(self.x_line)
-                self.x_line = self.image_area.create_line(0, event.y, self.tk_image.width(), event.y, width=1)
+                self.x_line = self.image_area.create_line(0, cur_y, self.tk_image.width(), cur_y, width=1)
                 if self.y_line:
                     self.image_area.delete(self.y_line)
-                self.y_line = self.image_area.create_line(event.x, 0, event.x, self.tk_image.height(), width=1)
+                self.y_line = self.image_area.create_line(cur_x, 0, cur_x, self.tk_image.height(), width=1)
 
             if self.mouse_state['click']:
                 if self.box_id:
                     self.image_area.delete(self.box_id)
                 self.box_id = self.image_area.create_rectangle(
                     self.mouse_state['x'], self.mouse_state['y'],
-                    event.x, event.y,
+                    cur_x, cur_y,
                     width=1,
                     outline=COLORS[self.box_total_index % len(COLORS)]
                 )
         elif self.cur_mode == DELETE_MODE:
-            if self.cur_scaling == 0:
-                return
-            scaling_percent = self.cur_scaling * 0.01
-            cur_x, cur_y = int(event.x / scaling_percent), int(event.y / scaling_percent)
+            # TODO need to response when move into box when in DELETE MODE
+            cur_in_label_flag = False
+            for label in self.labeled_list_origin:
+                if label[1] < cur_x_origin < label[3] and label[2] < cur_y_origin < label[4]:
+                    cur_in_label_flag = True
+                    if self.tk_image:
+                        if self.cross_line_1:
+                            self.image_area.delete(self.cross_line_1)
+                        self.cross_line_1 = self.image_area.create_line(label[1], label[2], label[3], label[4], width=1)
+                        if self.cross_line_2:
+                            self.image_area.delete(self.cross_line_2)
+                        self.cross_line_2 = self.image_area.create_line(label[1], label[4], label[3], label[2], width=1)
 
-            # TODO when move mouse into the box area, change the style
-            # for label in self.labeled_list_origin:
-            #     if label[1] < cur_x < label[3] and label[2] < cur_y < label[4]:
-            #         self.image_area.delete(int(label[5]))
-            #         box_id = self.image_area.create_rectangle(
-            #             label[1] * scaling_percent, label[2] * scaling_percent,
-            #             label[3] * scaling_percent, label[4] * scaling_percent,
-            #             width=2,
-            #             outline=COLORS[self.box_total_index % len(COLORS)]
-            #         )
-            #         label[5] = box_id
+            # if cur_in_label_flag:
+            #     self.image_area.configure(cursor='diamond_cross')
+            # else:
+            #     self.image_area.configure(cursor='arrow')
 
     def select_label(self, event):
         label_list_cur_selection = self.label_list.curselection()
@@ -550,6 +557,7 @@ class LabelTool:
         self.image_area.delete(self.box_text_list[box_id])
         self.box_text_list[box_id] = None
         self.save_labels()
+        # TODO mark label list
 
     def switch_view_mode(self):
         self.switch_mode(VIEW_MODE)
@@ -577,8 +585,20 @@ class LabelTool:
                 self.image_area.configure(cursor='tcross')
                 self.button_create_mode.configure(state='disabled')
             elif mode == DELETE_MODE:
-                self.image_area.configure(cursor='diamond_cross')
+                # self.image_area.configure(cursor='diamond_cross')
+                self.image_area.configure(cursor='arrow')
                 self.button_delete_mode.configure(state='disabled')
+
+    def get_current_xy_with_scrollbar(self, event_x, event_y):
+        if not self.cur_image:
+            return 0, 0, 0, 0
+        cur_x = int(self.scrollbar_x_image_area.get()[0] * self.cur_image.size[0] + event_x)
+        cur_y = int(self.scrollbar_y_image_area.get()[0] * self.cur_image.size[1] + event_y)
+        scaling_percent = self.cur_scaling * 0.01
+        cur_x_origin, cur_y_origin = int(cur_x / scaling_percent), int(cur_y / scaling_percent)
+
+        return cur_x, cur_y, cur_x_origin, cur_y_origin
+
 
 if __name__ == '__main__':
     root = Tk()
