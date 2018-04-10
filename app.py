@@ -1,5 +1,11 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
+
+'''
+Label makers for RCNN
+    Author: lujianyu (aimreant)
+    Email: iam@jianyujianyu.com
+'''
 import pickle
 from Tkinter import *
 from PIL import Image, ImageTk
@@ -10,7 +16,7 @@ from tkMessageBox import *
 ORIGIN_IMAGES_PATH = 'origin_images'
 LABELS_PATH = 'labels'
 COLORS = ['red', 'blue', 'cyan', 'green', 'black']
-SUPPORT_FORMAT = ['.jpg', '.jpeg', '.png']
+SUPPORT_FORMAT = ['.jpg', '.jpeg', '.png', '.bmp']
 
 VIEW_MODE = 0
 CREATE_MODE = 1
@@ -44,7 +50,8 @@ class LabelTool:
 
         # Build menu
         self.menu = Menu(self.parent)
-        self.menu.add_command(label='Hello!')
+        self.menu_file = Menu(self.menu, tearoff=0)
+        self.menu_file.add_command(label='Hello!')
         self.parent.config(menu=self.menu)
 
         # Build frames ------------------------------------------------------
@@ -120,24 +127,44 @@ class LabelTool:
         self.image_area.bind("<Button-1>", self.canvas_on_mouse_click)
         self.image_area.bind("<Motion>", self.canvas_on_mouse_move)
 
+        # Build operating area -----------------------------------------------------
+        self.operating_label = Label(self.frame_mode, text='Operatings', bg='gray', anchor='w')
+        self.operating_label.place(x=0, y=0, width=100, height=20)
+
+        self.button_images_zoom_1 = Button(self.frame_mode, text='Zoom in +', command=self.zoom_in_image)
+        self.button_images_zoom_1.place(x=0, y=20, width=100, height=23)
+        self.button_images_zoom_2 = Button(self.frame_mode, text='Zoom out -', command=self.zoom_out_image)
+        self.button_images_zoom_2.place(x=0, y=45, width=100, height=23)
+        self.label_cur_scaling = Label(self.frame_mode, text='Rate: 0%', anchor='w')
+        self.label_cur_scaling.place(x=10, y=70, width=80, height=20)
+        self.label_cur_cursor_1 = Label(self.frame_mode, text='x : 0', anchor='w')
+        self.label_cur_cursor_1.place(x=20, y=95, width=60, height=20)
+        self.label_cur_cursor_2 = Label(self.frame_mode, text='y : 0', anchor='w')
+        self.label_cur_cursor_2.place(x=20, y=115, width=60, height=20)
+        # self.label_tmp = Label(self.frame_mode, text='')
+        # self.label_tmp.place(x=0, y=0, width=100, height=20)
+
         # Build mode frame -----------------------------------------------------
+        self.mode_switch_label = Label(self.frame_mode, text='Modes', bg='gray', anchor='w')
+        self.mode_switch_label.place(x=0, y=140, width=100, height=20)
+
         self.button_view_mode = Button(self.frame_mode, text='VIEW MODE', bitmap='hourglass',
                                        command=self.switch_view_mode)
-        self.button_view_mode.place(x=10, y=10, width=80, height=80)
+        self.button_view_mode.place(x=10, y=170, width=80, height=80)
         self.label_view_mode = Label(self.frame_mode, text='VIEW MODE')
-        self.label_view_mode.place(x=0, y=90, width=100, height=20)
+        self.label_view_mode.place(x=0, y=250, width=100, height=20)
 
         self.button_create_mode = Button(self.frame_mode, text='CREATE MODE', bitmap='info',
                                          command=self.switch_create_mode)
-        self.button_create_mode.place(x=10, y=120, width=80, height=80)
+        self.button_create_mode.place(x=10, y=280, width=80, height=80)
         self.label_create_mode = Label(self.frame_mode, text='CREATE MODE')
-        self.label_create_mode.place(x=0, y=200, width=100, height=20)
+        self.label_create_mode.place(x=0, y=360, width=100, height=20)
 
         self.button_delete_mode = Button(self.frame_mode, text='DELETE MODE', bitmap='error',
                                          command=self.switch_delete_mode)
-        self.button_delete_mode.place(x=10, y=230, width=80, height=80)
+        self.button_delete_mode.place(x=10, y=390, width=80, height=80)
         self.label_delete_mode = Label(self.frame_mode, text='DELETE MODE')
-        self.label_delete_mode.place(x=0, y=310, width=100, height=20)
+        self.label_delete_mode.place(x=0, y=470, width=100, height=20)
 
         # Build checkbox -----------------------------------------------------
         self.check_var_rotate = IntVar()
@@ -162,17 +189,6 @@ class LabelTool:
 
         self.generate_label_bottom = Button(self.frame_console, text="Generate")
         self.generate_label_bottom.grid(row=0, column=1, rowspan=4)
-
-        self.button_images_zoom_1 = Button(self.frame_console, text='+', command=self.zoom_in_image)
-        self.button_images_zoom_1.grid(row=0, column=2, rowspan=2)
-        self.button_images_zoom_2 = Button(self.frame_console, text='-', command=self.zoom_out_image)
-        self.button_images_zoom_2.grid(row=1, column=2, rowspan=2)
-        self.label_cur_scaling = Label(self.frame_console, text='0%')
-        self.label_cur_scaling.grid(row=2, column=2, rowspan=2)
-        self.label_cur_cursor = Label(self.frame_console, text='')
-        self.label_cur_cursor.grid(row=4, column=2, rowspan=2)
-        self.label_tmp = Label(self.frame_console, text='')
-        self.label_tmp.grid(row=6, column=2, rowspan=2)
 
         # Initial mouse and others in canvas
         self.mouse_state = {
@@ -285,7 +301,7 @@ class LabelTool:
         self.box_total_index = 0
         self.box_id_list = []
         self.box_text_list = {}
-        self.cur_box_color_map = {}
+        # self.cur_box_color_map = {}
 
     def select_image(self, event):
         self.image_area.delete("all")
@@ -311,7 +327,7 @@ class LabelTool:
             width = width * 350 / height
             height = 350
         self.cur_scaling = round(float(width) / float(self.cur_image_origin.size[0]), 2) * 100
-        self.label_cur_scaling.config(text=str(self.cur_scaling) + '%')
+        self.label_cur_scaling.config(text='Rate: ' + str(self.cur_scaling) + '%')
 
         self.cur_image = self.cur_image.resize((width, height), Image.ANTIALIAS)
         self.tk_image = ImageTk.PhotoImage(self.cur_image)
@@ -327,44 +343,46 @@ class LabelTool:
         self.zoom_image(False)
 
     def zoom_image(self, bigger=True):
-        self.image_area.delete("all")
+        if self.cur_image_origin:
+            self.image_area.delete("all")
 
-        if bigger:
-            self.cur_scaling += 7
-        else:
-            self.cur_scaling -= 7
-        if self.cur_scaling < 10:
-            self.cur_scaling = 10
-        scaling_percent = self.cur_scaling * 0.01
-        (width, height) = self.cur_image_origin.size
-        width = int(width * scaling_percent)
-        height = int(height * scaling_percent)
+            if bigger:
+                self.cur_scaling += 7
+            else:
+                self.cur_scaling -= 7
+            if self.cur_scaling < 10:
+                self.cur_scaling = 10
+            scaling_percent = self.cur_scaling * 0.01
+            (width, height) = self.cur_image_origin.size
+            width = int(width * scaling_percent)
+            height = int(height * scaling_percent)
 
-        self.label_cur_scaling.config(text=str(self.cur_scaling) + '%')
+            self.label_cur_scaling.config(text='Rate: ' + str(self.cur_scaling) + '%')
 
-        self.cur_image = self.cur_image.resize((width, height), Image.ANTIALIAS)
-        self.tk_image = ImageTk.PhotoImage(self.cur_image)
-        self.image_area.create_image(0, 0, image=self.tk_image, anchor=NW)
-        self.image_area.configure(scrollregion=(0, 0, width, height))
+            self.cur_image = self.cur_image.resize((width, height), Image.ANTIALIAS)
+            self.tk_image = ImageTk.PhotoImage(self.cur_image)
+            self.image_area.create_image(0, 0, image=self.tk_image, anchor=NW)
+            self.image_area.configure(scrollregion=(0, 0, width, height))
 
-        self.flush_labels()
-        self.flush_box()
-        # index = 0
-        for label in self.labeled_list_origin:
-            box_id = self.create_label_box(
-                label[1] * scaling_percent, label[2] * scaling_percent,
-                label[3] * scaling_percent, label[4] * scaling_percent,
-                label[0]
-            )
-            label = (label[0], label[1], label[2], label[3], label[4], box_id)
-            self.mark_label_by_name(label[0])
+            self.flush_labels()
+            self.flush_box()
+            # index = 0
+            for label in self.labeled_list_origin:
+                box_id = self.create_label_box(
+                    label[1] * scaling_percent, label[2] * scaling_percent,
+                    label[3] * scaling_percent, label[4] * scaling_percent,
+                    label[0]
+                )
+                label = (label[0], label[1], label[2], label[3], label[4], box_id)
+                self.mark_label_by_name(label[0])
 
     def canvas_on_mousewheel(self, event):
         self.image_area.yview_scroll(-1 * (event.delta / 20), "units")
 
     def canvas_on_mouse_click(self, event):
         cur_x, cur_y, cur_x_origin, cur_y_origin = self.get_current_xy_with_scrollbar(event.x, event.y)
-        self.label_cur_cursor.config(text=str(cur_x_origin) + ', ' + str(cur_y_origin))
+        self.label_cur_cursor_1.config(text='x : ' + str(cur_x_origin))
+        self.label_cur_cursor_2.config(text='y : ' + str(cur_y_origin))
 
         if self.cur_mode == CREATE_MODE:
             if not self.tk_image:
@@ -419,7 +437,8 @@ class LabelTool:
 
     def canvas_on_mouse_move(self, event):
         cur_x, cur_y, cur_x_origin, cur_y_origin = self.get_current_xy_with_scrollbar(event.x, event.y)
-        self.label_cur_cursor.config(text=str(cur_x_origin) + ', ' + str(cur_y_origin))
+        self.label_cur_cursor_1.config(text='x : ' + str(cur_x_origin))
+        self.label_cur_cursor_2.config(text='y : ' + str(cur_y_origin))
 
         if self.cur_mode == CREATE_MODE:
             if self.tk_image:
@@ -447,13 +466,18 @@ class LabelTool:
                     cur_in_label_flag = True
                     # Create box cross
                     if self.tk_image:
+                        if not self.cur_box_color_map.has_key(label[5]):
+                            color = 'red'
+                        else:
+                            color = self.cur_box_color_map[label[5]]
+
                         if self.cross_line_1:
                             self.image_area.delete(self.cross_line_1)
                         self.cross_line_1 = self.image_area.create_line(
                             label[1] * scaling_percent, label[2] * scaling_percent,
                             label[3] * scaling_percent, label[4] * scaling_percent,
                             width=1,
-                            fill=self.cur_box_color_map[label[5]]
+                            fill=color
                         )
                         if self.cross_line_2:
                             self.image_area.delete(self.cross_line_2)
@@ -461,7 +485,7 @@ class LabelTool:
                             label[1] * scaling_percent, label[4] * scaling_percent,
                             label[3] * scaling_percent, label[2] * scaling_percent,
                             width=1,
-                            fill=self.cur_box_color_map[label[5]]
+                            fill=color
                         )
 
             if not cur_in_label_flag:
@@ -481,7 +505,7 @@ class LabelTool:
             showerror("Add label error", "Please write label name.")
         else:
             self.label_list.insert(END, ' [x] ' + self.label_name.get())
-        self.save_labels_to_pydb()
+            self.save_labels_to_pydb()
 
     def delete_label(self):
         if self.label_list.size() == 0:
