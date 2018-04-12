@@ -219,12 +219,8 @@ class LabelTool:
             pass
 
         # Initial operation
-        self.load_icon()
         self.load_images()
         self.switch_view_mode()
-
-    def load_icon(self):
-        self.file_icon = PhotoImage(Image.open('icons/file.png'))
 
     def load_images(self):
         self.parent.focus()
