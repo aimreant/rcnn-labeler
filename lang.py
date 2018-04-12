@@ -37,6 +37,10 @@ if LANGUAGE == 'ch':
     text_delete_label_error_info = '请选择标签。'
     text_delete_confirm_title = '删除确认'
     text_delete_confirm_info = '要执行此删除操作吗?'
+    text_no_images_title = '无照片'
+    text_no_images_info = '指定目录下没有找到照片。'
+    text_loading_error_title = '载入错误'
+    text_loading_error_info = '请联系开发者。'
 else:
     text_images_directory = 'Images directory'
     text_label = 'Labels'
@@ -65,3 +69,7 @@ else:
     text_delete_label_error_info = 'No Selected label.'
     text_delete_confirm_title = 'Delete confirm'
     text_delete_confirm_info = 'Sure to delete?'
+    text_no_images_title = 'No image'
+    text_no_images_info = 'Image not found under the specified folder.'
+    text_loading_error_title = 'Loading error'
+    text_loading_error_info = 'Please contact with developers.'

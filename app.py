@@ -233,7 +233,7 @@ class LabelTool:
             self.origin_images_list += glob.glob(os.path.join(self.origin_images_dir, '*' + sf))
 
         if len(self.origin_images_list) == 0:
-            showerror("No image", 'No ".jpg" images found in the specified dir  "' + ORIGIN_IMAGES_PATH + '"')
+            showerror(text_no_images_title, text_no_images_info)
 
         # Set label dir
         self.labels_dir = os.path.join('.', 'labels')  # label输出路径
@@ -300,7 +300,7 @@ class LabelTool:
 
         file_list_cur_selection = self.file_list.curselection()
         if not file_list_cur_selection:
-            showerror("Loading error", 'Please contact with developers.')
+            showerror(text_loading_error_title, text_loading_error_info)
             file_list_cur_selection = 1
         file_name_with_mark = self.file_list.get(file_list_cur_selection)
         self.cur_file_name = file_name_with_mark[5:]
