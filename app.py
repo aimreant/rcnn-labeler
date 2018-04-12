@@ -567,8 +567,13 @@ class LabelTool:
 
                     self.mark_label_by_name(tmp[0])
 
-    def get_label_txt_name(self, image_file_name):
+    @staticmethod
+    def get_label_txt_name(image_file_name):
         return image_file_name + '.txt'
+
+    @staticmethod
+    def get_image_name(label_txt_name):
+        return label_txt_name[:-4]
 
     def create_label_box(self, x1, y1, x2, y2, label_name):
         box_id = self.image_area.create_rectangle(

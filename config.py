@@ -9,6 +9,8 @@ Config for app
 
 ORIGIN_IMAGES_PATH = 'origin_images'
 LABELS_PATH = 'labels'
+XML_PATH = 'xmls'
+FOLDER_NAME = 'VOC2007'
 COLORS = ['red', 'blue', 'cyan', 'green', 'black']
 SUPPORT_FORMAT = ['.jpg', '.jpeg', '.png', '.bmp']
 WINDOW_SIZE = 900, 500
