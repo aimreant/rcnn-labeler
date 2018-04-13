@@ -59,10 +59,15 @@ class XMLTools:
         obj.appendChild(bndbox)
         return obj
 
-    def create_xml(self):
+    def create_xml(self, origin):
+        if origin:
+            images_path = ORIGIN_IMAGES_PATH
+        else:
+            images_path = OUTPUT_IMAGES_PATH
         for walk in os.walk(LABELS_PATH):
-            # walk = (dir path, dir names, file names)
+            # Here, walk = (dir path, dir names, file names)
             for file_name in walk[2]:
+                # Here, file_name: *.txt
                 file_in = open(os.path.join(walk[0], file_name), 'r')
                 index = 0
                 for data in islice(file_in, 1, None):
@@ -72,10 +77,13 @@ class XMLTools:
                     if 5 != len(label_data):
                         print('bounding box information error')
                         continue
-                    image_name = ImageTools.get_image_name(file_name)
-                    image_path = os.path.join(ORIGIN_IMAGES_PATH, image_name)
+
+                    if origin:
+                        image_name = ImageTools.get_image_name(file_name)
+                    else:
+                        image_name = ImageTools.get_converted_jpg_image_name(file_name)
+                    image_path = os.path.join(images_path, image_name)
                     image = cv2.imread(image_path)
-                    print(image_path)
                     image_size = image.shape
                     
                     if 1 == index:
@@ -147,20 +155,27 @@ class TrainTools:
     def __init__(self):
         pass
 
-    def create_set(self):
-        image_dir = os.path.join('.', ORIGIN_IMAGES_PATH)
-        image_list = glob.glob(os.path.join(image_dir, '*.jpg'))  # maybe more formats
+    def create_set(self, origin):
+        if origin:
+            images_path = ORIGIN_IMAGES_PATH
+        else:
+            images_path = OUTPUT_IMAGES_PATH
+
+        image_dir = os.path.join('.', images_path)
+        image_list = []
+        for sf in SUPPORT_FORMAT:
+            image_list += glob.glob(os.path.join(image_dir, '*' + sf))
         image_set_dir = os.path.join('.', 'sets')
-        MainDir = os.path.join(image_set_dir, 'Main')
+        main_dir = os.path.join(image_set_dir, 'Main')
         if len(image_list) != 0:
             if not os.path.exists(image_set_dir):
                 os.mkdir(image_set_dir)
-            if not os.path.exists(MainDir):
-                os.mkdir(MainDir)
-            f_test = open(os.path.join(MainDir, 'test.txt'), 'w')
-            f_train = open(os.path.join(MainDir, 'train.txt'), 'w')
-            f_val = open(os.path.join(MainDir, 'val.txt'), 'w')
-            f_trainval = open(os.path.join(MainDir, 'trainval.txt'), 'w')
+            if not os.path.exists(main_dir):
+                os.mkdir(main_dir)
+            f_test = open(os.path.join(main_dir, 'test.txt'), 'w')
+            f_train = open(os.path.join(main_dir, 'train.txt'), 'w')
+            f_val = open(os.path.join(main_dir, 'val.txt'), 'w')
+            f_trainval = open(os.path.join(main_dir, 'trainval.txt'), 'w')
             i = 0
             j = 0
             len_split = len(image_list) / 2
@@ -177,7 +192,6 @@ class TrainTools:
                         f_val.write(image_name + '\n')
                     f_trainval.write(image_name + '\n')
                     j += 1
-                    # print imagename
             f_test.close()
             f_train.close()
             f_val.close()
@@ -247,14 +261,3 @@ class ImageTools:
 
         for image_path in origin_images_list:
             ImageTools.convert_to_jpg_by_path(image_path)
-
-
-if __name__ == '__main__':
-    # train_tools = TrainTools()
-    # train_tools.create_set()
-
-    # testing converter
-    # ImageTools.convert_to_jpg_by_name('png_format_test.png')
-    # ImageTools.convert_to_jpg_by_name('bmp_format_test.bmp')
-
-    ImageTools.convert_all_images_to_jpg()

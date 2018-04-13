@@ -31,6 +31,7 @@ class LabelTool:
         self.cur_image_origin = None
         self.box_total_index = 0  # for color
         self.cur_mode = MODE[0]
+        self.converted = False
 
         # Set main parameters -----------------------------------------------
         self.parent = master
@@ -176,10 +177,11 @@ class LabelTool:
                                              variable=self.check_var_convert_jpg)
         self.check_convert_jpg.deselect()
         self.check_convert_jpg.grid(row=4, column=0, sticky=W)
+        self.check_var_convert_jpg.set(1)
 
-        self.generate_xml_label_bottom = Button(self.frame_console, text=text_generate_xml)
+        self.generate_xml_label_bottom = Button(self.frame_console, text=text_generate_xml, command=self.create_xml)
         self.generate_xml_label_bottom.grid(row=0, column=1, rowspan=2)
-        self.generate_set_label_bottom = Button(self.frame_console, text=text_generate_set)
+        self.generate_set_label_bottom = Button(self.frame_console, text=text_generate_set, command=self.create_set)
         self.generate_set_label_bottom.grid(row=1, column=1, rowspan=2)
 
         # Initial mouse and others in canvas
@@ -217,6 +219,9 @@ class LabelTool:
         # Initial operation
         self.load_images()
         self.switch_view_mode()
+
+        self.xml_tools = None
+        self.train_tools = None
 
     def load_images(self):
         self.parent.focus()
@@ -643,6 +648,32 @@ class LabelTool:
         cur_x_origin, cur_y_origin = int(cur_x / scaling_percent), int(cur_y / scaling_percent)
 
         return cur_x, cur_y, cur_x_origin, cur_y_origin
+
+    def create_xml(self):
+        if self.check_var_convert_jpg.get() == 1:
+            self.convert()
+        else:
+            self.converted = False
+
+        if self.xml_tools is None:
+            self.xml_tools = XMLTools()
+        self.xml_tools.create_xml(not self.converted)
+
+    def create_set(self):
+        if self.check_var_convert_jpg.get() == 1:
+            self.convert()
+        else:
+            self.converted = False
+
+        if self.train_tools is None:
+            self.train_tools = TrainTools()
+        self.train_tools.create_set(not self.converted)
+
+    def convert(self):
+        if not self.converted:
+            ImageTools.convert_all_images_to_jpg()
+            self.converted = True
+
 
 if __name__ == '__main__':
     root = Tk()
