@@ -234,7 +234,9 @@ class LabelTool:
             showerror(text_no_images_title, text_no_images_info)
 
         if self.has_same_names():
-            showerror(text_has_same_name_error_title, text_has_same_name_error_info)
+            res = showerror(text_has_same_name_error_title, text_has_same_name_error_info)
+            if res == 'ok':
+                exit(0)
 
         # Set label dir
         self.labels_dir = os.path.join('.', 'labels')  # label输出路径
