@@ -8,12 +8,10 @@ Label makers for RCNN
 """
 import pickle
 from Tkinter import *
-from PIL import Image, ImageTk
-import os
-import glob
+from PIL import ImageTk
 from tkMessageBox import *
-from config import *
 from lang import *
+from tools import *
 
 
 class LabelTool:
@@ -523,7 +521,7 @@ class LabelTool:
         self.label_list.selection_set(0)
             
     def save_labels(self):
-        file_name = self.get_label_txt_name(self.cur_file_name)
+        file_name = ImageTools.get_label_txt_name(self.cur_file_name)
         label_file_path = os.path.join(self.origin_labels_dir, file_name)
         with open(label_file_path, 'w') as f:
             f.write('%d\n' % len(self.labeled_list_origin))
@@ -535,7 +533,7 @@ class LabelTool:
         self.labeled_list_origin = []
         self.labeled_list = []
 
-        file_name = self.get_label_txt_name(file_name)
+        file_name = ImageTools.get_label_txt_name(file_name)
         label_file_path = os.path.join(self.origin_labels_dir, file_name)
         scaling_percent = self.cur_scaling * 0.01
 
@@ -562,14 +560,6 @@ class LabelTool:
                     self.labeled_list_origin.append(tuple(tmp))
 
                     self.mark_label_by_name(tmp[0])
-
-    @staticmethod
-    def get_label_txt_name(image_file_name):
-        return image_file_name + '.txt'
-
-    @staticmethod
-    def get_image_name(label_txt_name):
-        return label_txt_name[:-4]
 
     def create_label_box(self, x1, y1, x2, y2, label_name):
         box_id = self.image_area.create_rectangle(

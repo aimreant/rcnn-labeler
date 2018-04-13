@@ -8,6 +8,7 @@ Config for app
 """
 
 ORIGIN_IMAGES_PATH = 'origin_images'
+OUTPUT_IMAGES_PATH = 'output_images'
 LABELS_PATH = 'labels'
 XML_PATH = 'xmls'
 FOLDER_NAME = 'VOC2007'
