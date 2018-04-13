@@ -127,8 +127,6 @@ class LabelTool:
         self.label_cur_cursor_1.place(x=20, y=95, width=60, height=20)
         self.label_cur_cursor_2 = Label(self.frame_mode, text='y : 0', anchor='w')
         self.label_cur_cursor_2.place(x=20, y=115, width=60, height=20)
-        # self.label_tmp = Label(self.frame_mode, text='')
-        # self.label_tmp.place(x=0, y=0, width=100, height=20)
 
         # Build mode frame -----------------------------------------------------
         self.mode_switch_label = Label(self.frame_mode, text=text_mode, bg='gray', anchor='w')
