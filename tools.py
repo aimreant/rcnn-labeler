@@ -197,15 +197,20 @@ class ImageTools:
     @staticmethod
     def get_image_name(label_txt_name):
         names = label_txt_name.split('.')
-        no_suffix_name = '.'.join(names[:-1])
+        name_without_suffix = '.'.join(names[:-1])
 
         for sf in SUPPORT_FORMAT:
-            try_name = no_suffix_name + sf
+            try_name = name_without_suffix + sf
             image_path = os.path.join(ORIGIN_IMAGES_PATH, try_name)
             if os.path.exists(image_path):
                 return try_name
 
         return ''
+
+    @staticmethod
+    def get_name_without_suffix(name_with_suffix):
+        names = name_with_suffix.split('.')
+        return '.'.join(names[:-1])
 
     @staticmethod
     def get_converted_jpg_image_name(not_jpg_image_name):

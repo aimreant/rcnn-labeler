@@ -41,6 +41,8 @@ if LANGUAGE == 'ch':
     text_no_images_info = '指定目录下没有找到照片。'
     text_loading_error_title = '载入错误'
     text_loading_error_info = '请联系开发者。'
+    text_has_same_name_error_title = '重名错误'
+    text_has_same_name_error_info = '存在不同格式的同名图片，可能会导致程序异常'
 else:
     text_images_directory = 'Images directory'
     text_label = 'Labels'
@@ -73,3 +75,5 @@ else:
     text_no_images_info = 'Image not found under the specified folder.'
     text_loading_error_title = 'Loading error'
     text_loading_error_info = 'Please contact with developers.'
+    text_has_same_name_error_title = 'Same name error'
+    text_has_same_name_error_info = 'Image with same names but different formats exist, it may make some exceptions'

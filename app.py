@@ -233,6 +233,9 @@ class LabelTool:
         if len(self.origin_images_list) == 0:
             showerror(text_no_images_title, text_no_images_info)
 
+        if self.has_same_names():
+            showerror(text_has_same_name_error_title, text_has_same_name_error_info)
+
         # Set label dir
         self.labels_dir = os.path.join('.', 'labels')  # label输出路径
         if not os.path.exists(self.labels_dir):
@@ -243,6 +246,13 @@ class LabelTool:
         for image in self.origin_images_list:
             file_name = image.split('/')[-1]
             self.insert_to_file_list(file_name)
+
+    def has_same_names(self):
+        names_without_suffix = []
+        for image_name in self.origin_images_list:
+            names_without_suffix.append(ImageTools.get_name_without_suffix(image_name))
+
+        return len(set(names_without_suffix)) != len(names_without_suffix)
 
     def insert_to_file_list(self, file_name, handled=False):
         if handled:
