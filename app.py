@@ -172,13 +172,6 @@ class LabelTool:
         self.check_blur.deselect()
         self.check_blur.grid(row=3, column=0, sticky=W)
 
-        self.check_var_convert_jpg = IntVar()
-        self.check_convert_jpg = Checkbutton(self.frame_console, text=text_convert_jpg,
-                                             variable=self.check_var_convert_jpg)
-        self.check_convert_jpg.deselect()
-        self.check_convert_jpg.grid(row=4, column=0, sticky=W)
-        self.check_var_convert_jpg.set(1)
-
         self.generate_xml_label_bottom = Button(self.frame_console, text=text_generate_xml, command=self.create_xml)
         self.generate_xml_label_bottom.grid(row=0, column=1, rowspan=2)
         self.generate_set_label_bottom = Button(self.frame_console, text=text_generate_set, command=self.create_set)
@@ -543,12 +536,12 @@ class LabelTool:
             for label in self.labeled_list_origin:
                 f.write(' '.join(map(str, label[:-1])) + '\n')
 
-    def load_labels(self, file_name):
+    def load_labels(self, image_name):
         # load label when select an image
         self.labeled_list_origin = []
         self.labeled_list = []
 
-        file_name = ImageTools.get_label_txt_name(file_name)
+        file_name = ImageTools.get_label_txt_name(image_name)
         label_file_path = os.path.join(self.origin_labels_dir, file_name)
         scaling_percent = self.cur_scaling * 0.01
 
@@ -650,20 +643,16 @@ class LabelTool:
         return cur_x, cur_y, cur_x_origin, cur_y_origin
 
     def create_xml(self):
-        if self.check_var_convert_jpg.get() == 1:
+        if not self.converted:
             self.convert()
-        else:
-            self.converted = False
 
         if self.xml_tools is None:
             self.xml_tools = XMLTools()
         self.xml_tools.create_xml(not self.converted)
 
     def create_set(self):
-        if self.check_var_convert_jpg.get() == 1:
+        if not self.converted:
             self.convert()
-        else:
-            self.converted = False
 
         if self.train_tools is None:
             self.train_tools = TrainTools()
@@ -673,6 +662,42 @@ class LabelTool:
         if not self.converted:
             ImageTools.convert_all_images_to_jpg()
             self.converted = True
+
+    def generate_copy(self):
+
+        def save(_image, _labels_list, _image_name):
+            new_image_name = ImageTools.generate_random_name(_image_name)
+            ImageTools.save_one_label(new_image_name, _labels_list)
+            image.save(os.path.join(OUTPUT_IMAGES_PATH, new_image_name))
+
+        for image_path in self.origin_images_list:
+            image = Image.open(image_path)
+            image_name = image_path.split('/')[-1]
+            labels_list = ImageTools.load_one_label(image_name)
+            if self.check_var_zoom.get() == 1:
+                image, labels_list = self.generate_zoom_copy(image, labels_list)
+                save(image, labels_list, image_name)
+            if self.check_var_rotate.get() == 1:
+                image, labels_list = self.generate_rotate_copy(image, labels_list)
+                save(image, labels_list, image_name)
+            if self.check_var_blur.get() == 1:
+                image, labels_list = self.generate_blur_copy(image, labels_list)
+                save(image, labels_list, image_name)
+            if self.check_var_impurity.get() == 1:
+                image, labels_list = self.generate_impurity_copy(image, labels_list)
+                save(image, labels_list, image_name)
+
+    def generate_zoom_copy(self, image, labels_list):
+        return image, labels_list
+
+    def generate_rotate_copy(self, image, labels_list):
+        return image, labels_list
+
+    def generate_blur_copy(self, image, labels_list):
+        return image, labels_list
+
+    def generate_impurity_copy(self, image, labels_list):
+        return image, labels_list
 
 
 if __name__ == '__main__':

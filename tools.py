@@ -13,6 +13,7 @@ from itertools import islice
 from xml.dom.minidom import Document
 import glob
 from PIL import Image
+import random, string
 
 
 class XMLTools:
@@ -261,3 +262,47 @@ class ImageTools:
 
         for image_path in origin_images_list:
             ImageTools.convert_to_jpg_by_path(image_path)
+
+    @staticmethod
+    def generate_random_name(origin_name):
+        random_string = ''.join(random.choice(string.ascii_lowercase) for x in range(10))
+        names = origin_name.split('.')
+        names[-2] = names[-2] + '_' + random_string
+        return '.'.join(names)
+
+    @staticmethod
+    def save_one_label(image_name, labeled_list):
+        file_name = ImageTools.get_label_txt_name(image_name)
+        origin_labels_dir = os.path.join('.', LABELS_PATH)
+        label_file_path = os.path.join(origin_labels_dir, file_name)
+        with open(label_file_path, 'w') as f:
+            f.write('%d\n' % len(labeled_list))
+            for label in labeled_list:
+                f.write(' '.join(map(str, label[:-1])) + '\n')
+
+    @staticmethod
+    def load_one_label(image_name):
+        file_name = ImageTools.get_label_txt_name(image_name)
+        origin_labels_dir = os.path.join('.', LABELS_PATH)
+        label_file_path = os.path.join(origin_labels_dir, file_name)
+
+        label_list = []
+        if os.path.exists(label_file_path):
+            with open(label_file_path) as f:
+                # index = 0
+                for (i, line) in enumerate(f):
+                    if i == 0:
+                        int(line.strip())
+                        continue
+                    tmp = [t for t in line.split()]
+
+                    tmp[1], tmp[2], tmp[3], tmp[4] = \
+                        int(tmp[1]), int(tmp[2]), int(tmp[3]), int(tmp[4])
+
+                    label_list.append(tmp)
+
+        return label_list
+
+    @staticmethod
+    def calculate_labels(label_list):
+        pass
