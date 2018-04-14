@@ -8,7 +8,7 @@ Label makers for RCNN
 """
 import pickle
 from Tkinter import *
-from PIL import ImageTk
+from PIL import ImageTk, ImageFilter
 from tkMessageBox import *
 from lang import *
 from tools import *
@@ -662,16 +662,19 @@ class LabelTool:
         if not self.converted:
             ImageTools.convert_all_images_to_jpg()
             self.converted = True
+            self.generate_copy()
 
     def generate_copy(self):
 
         def save(_image, _labels_list, _image_name):
+            _image_name = ImageTools.get_converted_jpg_image_name(_image_name)
             new_image_name = ImageTools.generate_random_name(_image_name)
             ImageTools.save_one_label(new_image_name, _labels_list)
             image.save(os.path.join(OUTPUT_IMAGES_PATH, new_image_name))
 
         for image_path in self.origin_images_list:
             image = Image.open(image_path)
+            image = image.convert("RGB")
             image_name = image_path.split('/')[-1]
             labels_list = ImageTools.load_one_label(image_name)
             if self.check_var_zoom.get() == 1:
@@ -694,9 +697,19 @@ class LabelTool:
         return image, labels_list
 
     def generate_blur_copy(self, image, labels_list):
+        image = image.filter(ImageFilter.BLUR).filter(ImageFilter.GaussianBlur)
         return image, labels_list
 
     def generate_impurity_copy(self, image, labels_list):
+        width, height = image.size
+        pixel_time = width * height / 20
+        for i in xrange(pixel_time):
+            position = (random.randint(0, width - 1), random.randint(0, height - 1))
+            color = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
+            image.putpixel(position, color)
+        return image, labels_list
+
+    def generate_edge_enhance_copy(self, image, labels_list):
         return image, labels_list
 
 

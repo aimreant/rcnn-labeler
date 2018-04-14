@@ -278,7 +278,7 @@ class ImageTools:
         with open(label_file_path, 'w') as f:
             f.write('%d\n' % len(labeled_list))
             for label in labeled_list:
-                f.write(' '.join(map(str, label[:-1])) + '\n')
+                f.write(' '.join(map(str, label[0:5])) + '\n')
 
     @staticmethod
     def load_one_label(image_name):
