@@ -172,7 +172,13 @@ class LabelTool:
         self.check_blur.deselect()
         self.check_blur.grid(row=3, column=0, sticky=W)
 
-        self.generate_xml_label_bottom = Button(self.frame_console, text=text_generate_xml, command=self.create_xml_and_set)
+        self.check_var_edge_enhance = IntVar()
+        self.check_edge_enhance = Checkbutton(self.frame_console, text=text_edge_enhance, variable=self.check_var_edge_enhance)
+        self.check_edge_enhance.deselect()
+        self.check_edge_enhance.grid(row=4, column=0, sticky=W)
+
+        self.generate_xml_label_bottom = Button(self.frame_console, text=text_generate_xml,
+                                                command=self.create_xml_and_set)
         self.generate_xml_label_bottom.grid(row=0, column=1, rowspan=2)
         # self.generate_set_label_bottom = Button(self.frame_console, text=text_generate_set, command=self.create_set)
         # self.generate_set_label_bottom.grid(row=1, column=1, rowspan=2)
@@ -681,6 +687,9 @@ class LabelTool:
                 save(image, labels_list, image_name)
             if self.check_var_impurity.get() == 1:
                 image, labels_list = self.generate_impurity_copy(image, labels_list)
+                save(image, labels_list, image_name)
+            if self.check_var_edge_enhance.get() == 1:
+                image, labels_list = self.generate_edge_enhance_copy(image, labels_list)
                 save(image, labels_list, image_name)
 
     def generate_zoom_copy(self, image, labels_list):
