@@ -351,8 +351,8 @@ class ImageTools:
 
     @staticmethod
     def generate_rotate_copy(image, labels_list):
-        width, height = image.size
         image = image.rotate(270, expand=True)
+        width, height = image.size
         new_labels_list = []
 
         for label in labels_list:
