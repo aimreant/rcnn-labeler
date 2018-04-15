@@ -61,7 +61,17 @@ class XMLTools:
         obj.appendChild(bndbox)
         return obj
 
+    def remove_exist_xml(self):
+        xml_dir = os.path.join('.', XML_PATH)
+        xml_list = glob.glob(os.path.join(xml_dir, '*.xml'))
+
+        for xml in xml_list:
+            os.remove(xml)
+
     def create_xml(self, origin):
+        
+        self.remove_exist_xml()
+
         if origin:
             images_path = ORIGIN_IMAGES_PATH
         else:
