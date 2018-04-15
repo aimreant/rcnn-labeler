@@ -12,7 +12,7 @@ import cv2
 from itertools import islice
 from xml.dom.minidom import Document
 import glob
-from PIL import Image
+from PIL import Image, ImageFilter
 import random
 import string
 
@@ -328,4 +328,56 @@ class ImageTools:
                 y_max = label[4]
 
         return x_min, y_min, x_max, y_max
+
+    @staticmethod
+    def generate_zoom_copy(image, labels_list):
+        width, height = image.size
+        x_min, y_min, x_max, y_max = ImageTools.calculate_labels(labels_list)
+        x1 = random.randint(0, x_min - 1)
+        y1 = random.randint(0, y_min - 1)
+        x2 = random.randint(x_max, width - 1)
+        y2 = random.randint(y_max, height - 1)
+        image = image.crop((x1, y1, x2, y2))
+
+        for label in labels_list:
+            label[1] = label[1] - x1
+            label[2] = label[2] - y1
+            label[3] = label[3] - x1
+            label[4] = label[4] - y1
+
+        # TODO only cut, need zoom
+
+        return image, labels_list
+
+    @staticmethod
+    def generate_rotate_copy(image, labels_list):
+        width, height = image.size
+        image = image.rotate(270, expand=True)
+        new_labels_list = []
+
+        for label in labels_list:
+            tmp = label[0], width - label[4], label[1], width - label[2], label[3]
+            new_labels_list.append(tmp)
+
+        return image, new_labels_list
+
+    @staticmethod
+    def generate_blur_copy(image, labels_list):
+        image = image.filter(ImageFilter.BLUR).filter(ImageFilter.GaussianBlur)
+        return image, labels_list
+
+    @staticmethod
+    def generate_impurity_copy(image, labels_list):
+        width, height = image.size
+        pixel_time = width * height / 20
+        for i in xrange(pixel_time):
+            position = (random.randint(0, width - 1), random.randint(0, height - 1))
+            color = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
+            image.putpixel(position, color)
+        return image, labels_list
+
+    @staticmethod
+    def generate_edge_enhance_copy(image, labels_list):
+        image = image.filter(ImageFilter.EDGE_ENHANCE_MORE).filter(ImageFilter.EDGE_ENHANCE_MORE)
+        return image, labels_list
 
