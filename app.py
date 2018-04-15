@@ -50,7 +50,7 @@ class LabelTool:
         self.frame_label_button.place(x=0, y=455, width=180, height=45)
         self.frame_image_area = Frame(self.frame)
         self.frame_image_area.place(x=200, y=0, width=IMAGE_AREA_SIZE[0], height=IMAGE_AREA_SIZE[1])
-        self.frame_console = Frame(self.frame, bg="red")
+        self.frame_console = Frame(self.frame)
         self.frame_console.place(x=200, y=IMAGE_AREA_SIZE[1],
                                  width=IMAGE_AREA_SIZE[0], height=WINDOW_SIZE[1] - IMAGE_AREA_SIZE[1])
         self.frame_mode = Frame(self.frame)
@@ -170,16 +170,16 @@ class LabelTool:
         self.check_var_blur = IntVar()
         self.check_blur = Checkbutton(self.frame_console, text=text_blur, variable=self.check_var_blur)
         self.check_blur.deselect()
-        self.check_blur.grid(row=3, column=0, sticky=W)
+        self.check_blur.grid(row=0, column=1, sticky=W)
 
         self.check_var_edge_enhance = IntVar()
         self.check_edge_enhance = Checkbutton(self.frame_console, text=text_edge_enhance, variable=self.check_var_edge_enhance)
         self.check_edge_enhance.deselect()
-        self.check_edge_enhance.grid(row=4, column=0, sticky=W)
+        self.check_edge_enhance.grid(row=1, column=1, sticky=W)
 
         self.generate_xml_label_bottom = Button(self.frame_console, text=text_generate_xml,
                                                 command=self.create_xml_and_set)
-        self.generate_xml_label_bottom.grid(row=0, column=1, rowspan=2)
+        self.generate_xml_label_bottom.grid(row=3, column=0, columnspan=2, sticky=W)
         # self.generate_set_label_bottom = Button(self.frame_console, text=text_generate_set, command=self.create_set)
         # self.generate_set_label_bottom.grid(row=1, column=1, rowspan=2)
 

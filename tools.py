@@ -69,7 +69,7 @@ class XMLTools:
             os.remove(xml)
 
     def create_xml(self, origin):
-        
+
         self.remove_exist_xml()
 
         if origin:
