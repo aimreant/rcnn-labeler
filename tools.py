@@ -360,16 +360,30 @@ class ImageTools:
         return image, labels_list
 
     @staticmethod
-    def generate_rotate_copy(image, labels_list):
-        image = image.rotate(270, expand=True)
-        width, height = image.size
-        new_labels_list = []
+    def generate_rotate_copy(image, labels_list, rotate_type):
+        if rotate_type == 270 or rotate_type == 90:
+            image = image.rotate(270, expand=True)
+            width, height = image.size
+            new_labels_list = []
 
-        for label in labels_list:
-            tmp = label[0], width - label[4], label[1], width - label[2], label[3]
-            new_labels_list.append(tmp)
+            for label in labels_list:
+                tmp = label[0], width - label[4], label[1], width - label[2], label[3]
+                new_labels_list.append(tmp)
 
-        return image, new_labels_list
+            return image, new_labels_list
+        elif rotate_type == 180:
+            image = image.rotate(180, expand=True)
+            width, height = image.size
+            new_labels_list = []
+
+            for label in labels_list:
+                tmp = label[0], width - label[3], height - label[4], width - label[1], height - label[2]
+                new_labels_list.append(tmp)
+
+            return image, new_labels_list
+        else:
+            return image, labels_list
+
 
     @staticmethod
     def generate_blur_copy(image, labels_list):

@@ -152,30 +152,36 @@ class LabelTool:
         self.label_delete_mode.place(x=0, y=470, width=100, height=20)
 
         # Build checkbox -----------------------------------------------------
-        self.check_var_rotate = IntVar()
-        self.check_rotate = Checkbutton(self.frame_console, text=text_rotate, variable=self.check_var_rotate)
-        self.check_rotate.deselect()
-        self.check_rotate.grid(row=0, column=0, sticky=W)
+        self.check_var_rotate_1 = IntVar()
+        self.check_rotate_1 = Checkbutton(self.frame_console, text=text_rotate_1, variable=self.check_var_rotate_1)
+        self.check_rotate_1.deselect()
+        self.check_rotate_1.grid(row=0, column=0, sticky=W)
+
+        self.check_var_rotate_2 = IntVar()
+        self.check_rotate_2 = Checkbutton(self.frame_console, text=text_rotate_2, variable=self.check_var_rotate_2)
+        self.check_rotate_2.deselect()
+        self.check_rotate_2.grid(row=1, column=0, sticky=W)
 
         self.check_var_zoom = IntVar()
         self.check_zoom = Checkbutton(self.frame_console, text=text_zoom, variable=self.check_var_zoom)
         self.check_zoom.deselect()
-        self.check_zoom.grid(row=1, column=0, sticky=W)
+        self.check_zoom.grid(row=2, column=0, sticky=W)
 
         self.check_var_impurity = IntVar()
         self.check_impurity = Checkbutton(self.frame_console, text=text_impurity, variable=self.check_var_impurity)
         self.check_impurity.deselect()
-        self.check_impurity.grid(row=2, column=0, sticky=W)
+        self.check_impurity.grid(row=0, column=1, sticky=W)
 
         self.check_var_blur = IntVar()
         self.check_blur = Checkbutton(self.frame_console, text=text_blur, variable=self.check_var_blur)
         self.check_blur.deselect()
-        self.check_blur.grid(row=0, column=1, sticky=W)
+        self.check_blur.grid(row=1, column=1, sticky=W)
 
         self.check_var_edge_enhance = IntVar()
-        self.check_edge_enhance = Checkbutton(self.frame_console, text=text_edge_enhance, variable=self.check_var_edge_enhance)
+        self.check_edge_enhance = Checkbutton(self.frame_console, text=text_edge_enhance,
+                                              variable=self.check_var_edge_enhance)
         self.check_edge_enhance.deselect()
-        self.check_edge_enhance.grid(row=1, column=1, sticky=W)
+        self.check_edge_enhance.grid(row=2, column=1, sticky=W)
 
         self.generate_xml_label_bottom = Button(self.frame_console, text=text_generate_xml,
                                                 command=self.create_xml_and_set)
@@ -679,8 +685,11 @@ class LabelTool:
             if self.check_var_zoom.get() == 1:
                 image, labels_list = ImageTools.generate_zoom_copy(image, labels_list)
                 save(image, labels_list, image_name)
-            if self.check_var_rotate.get() == 1:
-                image, labels_list = ImageTools.generate_rotate_copy(image, labels_list)
+            if self.check_var_rotate_1.get() == 1:
+                image, labels_list = ImageTools.generate_rotate_copy(image, labels_list, 270)
+                save(image, labels_list, image_name)
+            if self.check_var_rotate_2.get() == 1:
+                image, labels_list = ImageTools.generate_rotate_copy(image, labels_list, 180)
                 save(image, labels_list, image_name)
             if self.check_var_blur.get() == 1:
                 image, labels_list = ImageTools.generate_blur_copy(image, labels_list)
