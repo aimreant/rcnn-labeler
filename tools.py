@@ -305,4 +305,23 @@ class ImageTools:
 
     @staticmethod
     def calculate_labels(label_list):
-        pass
+        """
+        Get min(x,y) and max(x,y) from label_list
+        :param label_list:
+        :return: (x_min, y_min, x_max, y_max)
+        """
+        if len(label_list) == 0:
+            return 0, 0, 0, 0
+        x_min, y_min, x_max, y_max = label_list[0][1], label_list[0][2], label_list[0][3], label_list[0][4]
+        for label in label_list:
+            if label[1] < x_min:
+                x_min = label[1]
+            if label[2] < y_min:
+                y_min = label[2]
+            if label[3] > x_max:
+                x_max = label[3]
+            if label[4] < y_max:
+                y_max = label[4]
+
+        return x_min, y_min, x_max, y_max
+

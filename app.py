@@ -691,6 +691,22 @@ class LabelTool:
                 save(image, labels_list, image_name)
 
     def generate_zoom_copy(self, image, labels_list):
+        width, height = image.size
+        x_min, y_min, x_max, y_max = ImageTools.calculate_labels(labels_list)
+        x1 = random.randint(0, x_min - 1)
+        y1 = random.randint(0, y_min - 1)
+        x2 = random.randint(x_max, width - 1)
+        y2 = random.randint(y_max, height - 1)
+        image = image.crop((x1, y1, x2, y2))
+
+        for label in labels_list:
+            label[1] = label[1] - x1
+            label[2] = label[2] - y1
+            label[3] = label[3] - x1
+            label[4] = label[4] - y1
+
+        # TODO only cut, need zoom
+
         return image, labels_list
 
     def generate_rotate_copy(self, image, labels_list):
@@ -710,6 +726,7 @@ class LabelTool:
         return image, labels_list
 
     def generate_edge_enhance_copy(self, image, labels_list):
+        image = image.filter(ImageFilter.EDGE_ENHANCE_MORE).filter(ImageFilter.EDGE_ENHANCE_MORE)
         return image, labels_list
 
 
