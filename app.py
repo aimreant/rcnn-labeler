@@ -172,10 +172,10 @@ class LabelTool:
         self.check_blur.deselect()
         self.check_blur.grid(row=3, column=0, sticky=W)
 
-        self.generate_xml_label_bottom = Button(self.frame_console, text=text_generate_xml, command=self.create_xml)
+        self.generate_xml_label_bottom = Button(self.frame_console, text=text_generate_xml, command=self.create_xml_and_set)
         self.generate_xml_label_bottom.grid(row=0, column=1, rowspan=2)
-        self.generate_set_label_bottom = Button(self.frame_console, text=text_generate_set, command=self.create_set)
-        self.generate_set_label_bottom.grid(row=1, column=1, rowspan=2)
+        # self.generate_set_label_bottom = Button(self.frame_console, text=text_generate_set, command=self.create_set)
+        # self.generate_set_label_bottom.grid(row=1, column=1, rowspan=2)
 
         # Initial mouse and others in canvas
         self.mouse_state = {
@@ -642,27 +642,20 @@ class LabelTool:
 
         return cur_x, cur_y, cur_x_origin, cur_y_origin
 
-    def create_xml(self):
-        if not self.converted:
-            self.convert()
+    def create_xml_and_set(self):
+        self.convert()
 
         if self.xml_tools is None:
             self.xml_tools = XMLTools()
         self.xml_tools.create_xml(not self.converted)
-
-    def create_set(self):
-        if not self.converted:
-            self.convert()
-
         if self.train_tools is None:
             self.train_tools = TrainTools()
         self.train_tools.create_set(not self.converted)
 
     def convert(self):
-        if not self.converted:
-            ImageTools.convert_all_images_to_jpg()
-            self.converted = True
-            self.generate_copy()
+        ImageTools.convert_all_images_to_jpg()
+        self.converted = True
+        self.generate_copy()
 
     def generate_copy(self):
 
@@ -710,7 +703,15 @@ class LabelTool:
         return image, labels_list
 
     def generate_rotate_copy(self, image, labels_list):
-        return image, labels_list
+        width, height = image.size
+        image = image.rotate(270, expand=True)
+        new_labels_list = []
+
+        for label in labels_list:
+            tmp = label[0], width - label[4], label[1], width - label[2], label[3]
+            new_labels_list.append(tmp)
+
+        return image, new_labels_list
 
     def generate_blur_copy(self, image, labels_list):
         image = image.filter(ImageFilter.BLUR).filter(ImageFilter.GaussianBlur)

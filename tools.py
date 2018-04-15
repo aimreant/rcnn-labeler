@@ -13,7 +13,8 @@ from itertools import islice
 from xml.dom.minidom import Document
 import glob
 from PIL import Image
-import random, string
+import random
+import string
 
 
 class XMLTools:
@@ -84,6 +85,9 @@ class XMLTools:
                     else:
                         image_name = ImageTools.get_converted_jpg_image_name(file_name)
                     image_path = os.path.join(images_path, image_name)
+                    if not os.path.exists(image_path):
+                        continue
+
                     image = cv2.imread(image_path)
                     image_size = image.shape
                     
