@@ -369,7 +369,7 @@ class ImageTools:
     @staticmethod
     def generate_impurity_copy(image, labels_list):
         width, height = image.size
-        pixel_time = width * height / 20
+        pixel_time = width * height / 8
         for i in xrange(pixel_time):
             position = (random.randint(0, width - 1), random.randint(0, height - 1))
             color = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
