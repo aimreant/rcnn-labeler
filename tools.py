@@ -324,7 +324,7 @@ class ImageTools:
                 y_min = label[2]
             if label[3] > x_max:
                 x_max = label[3]
-            if label[4] < y_max:
+            if label[4] > y_max:
                 y_max = label[4]
 
         return x_min, y_min, x_max, y_max
