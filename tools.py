@@ -68,9 +68,17 @@ class XMLTools:
         for xml in xml_list:
             os.remove(xml)
 
+    def remove_output_images(self):
+        output_images_dir = os.path.join('.', OUTPUT_IMAGES_PATH)
+        output_images_list = glob.glob(os.path.join(output_images_dir, '*.jpg'))
+
+        for image in output_images_list:
+            os.remove(image)
+
     def create_xml(self, origin):
 
         self.remove_exist_xml()
+        self.remove_output_images()
 
         if origin:
             images_path = ORIGIN_IMAGES_PATH
