@@ -679,26 +679,26 @@ class LabelTool:
 
         for image_path in self.origin_images_list:
             image = Image.open(image_path)
-            image = image.convert("RGB")
+            origin_image = image.convert("RGB")
             image_name = image_path.split('/')[-1]
             labels_list = ImageTools.load_one_label(image_name)
             if self.check_var_zoom.get() == 1:
-                image, labels_list = ImageTools.generate_zoom_copy(image, labels_list)
+                image, labels_list = ImageTools.generate_zoom_copy(origin_image, labels_list)
                 save(image, labels_list, image_name)
             if self.check_var_rotate_1.get() == 1:
-                image, labels_list = ImageTools.generate_rotate_copy(image, labels_list, 270)
+                image, labels_list = ImageTools.generate_rotate_copy(origin_image, labels_list, 270)
                 save(image, labels_list, image_name)
             if self.check_var_rotate_2.get() == 1:
-                image, labels_list = ImageTools.generate_rotate_copy(image, labels_list, 180)
+                image, labels_list = ImageTools.generate_rotate_copy(origin_image, labels_list, 180)
                 save(image, labels_list, image_name)
             if self.check_var_blur.get() == 1:
-                image, labels_list = ImageTools.generate_blur_copy(image, labels_list)
+                image, labels_list = ImageTools.generate_blur_copy(origin_image, labels_list)
                 save(image, labels_list, image_name)
             if self.check_var_impurity.get() == 1:
-                image, labels_list = ImageTools.generate_impurity_copy(image, labels_list)
+                image, labels_list = ImageTools.generate_impurity_copy(origin_image, labels_list)
                 save(image, labels_list, image_name)
             if self.check_var_edge_enhance.get() == 1:
-                image, labels_list = ImageTools.generate_edge_enhance_copy(image, labels_list)
+                image, labels_list = ImageTools.generate_edge_enhance_copy(origin_image, labels_list)
                 save(image, labels_list, image_name)
 
 
