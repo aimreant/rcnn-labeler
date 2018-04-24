@@ -112,6 +112,7 @@ class LabelTool:
         # TODO bind mousewheel to scrollbar on canvas
         # self.image_area.bind_all("<MouseWheel>", self._on_mousewheel)
         self.image_area.bind("<Button-1>", self.canvas_on_mouse_click)
+        self.image_area.bind("<Button-2>", self.canvas_on_mouse_right_click)
         self.image_area.bind("<Motion>", self.canvas_on_mouse_move)
 
         # Build operating area -----------------------------------------------------
@@ -444,6 +445,13 @@ class LabelTool:
                 if label[1] < cur_x_origin < label[3] and label[2] < cur_y_origin < label[4]:
                     self.labeled_list_origin.remove(label)
                     self.delete_label_box(int(label[5]))
+
+        elif self.cur_mode == VIEW_MODE:
+            self.zoom_in_image()
+
+    def canvas_on_mouse_right_click(self, event):
+        if self.cur_mode == VIEW_MODE:
+            self.zoom_out_image()
 
     def canvas_on_mouse_move(self, event):
         cur_x, cur_y, cur_x_origin, cur_y_origin = self.get_current_xy_with_scrollbar(event.x, event.y)
