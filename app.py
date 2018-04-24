@@ -184,9 +184,21 @@ class LabelTool:
         self.check_edge_enhance.deselect()
         self.check_edge_enhance.grid(row=2, column=1, sticky=W)
 
+        self.check_var_noise_reduction = IntVar()
+        self.check_noise_reduction = Checkbutton(self.frame_console, text=text_noise_reduction,
+                                                 variable=self.check_var_noise_reduction)
+        self.check_noise_reduction.deselect()
+        self.check_noise_reduction.grid(row=3, column=1, sticky=W)
+
+        self.check_var_generate_one = IntVar()
+        self.check_generate_one = Checkbutton(self.frame_console, text=text_generate_one,
+                                              variable=self.check_var_generate_one)
+        self.check_generate_one.deselect()
+        self.check_generate_one.grid(row=4, column=1, sticky=W)
+
         self.generate_xml_label_bottom = Button(self.frame_console, text=text_generate_xml,
                                                 command=self.create_xml_and_set)
-        self.generate_xml_label_bottom.grid(row=3, column=0, columnspan=2, sticky=W)
+        self.generate_xml_label_bottom.grid(row=5, column=0, columnspan=2, sticky=W)
         # self.generate_set_label_bottom = Button(self.frame_console, text=text_generate_set, command=self.create_set)
         # self.generate_set_label_bottom.grid(row=1, column=1, rowspan=2)
 
@@ -547,7 +559,7 @@ class LabelTool:
             labels = pickle.load(f)
             self.labels.set(labels)
         self.label_list.selection_set(0)
-            
+
     def save_labels(self):
         file_name = ImageTools.get_label_txt_name(self.cur_file_name)
         label_file_path = os.path.join(self.origin_labels_dir, file_name)
@@ -673,6 +685,9 @@ class LabelTool:
         self.train_tools.create_set(not self.converted)
 
     def convert(self):
+        if self.xml_tools is None:
+            self.xml_tools = XMLTools()
+        self.xml_tools.remove_output_images()
         ImageTools.convert_all_images_to_jpg()
         self.converted = True
         self.generate_copy()
@@ -707,6 +722,9 @@ class LabelTool:
                 save(image, labels_list, image_name)
             if self.check_var_edge_enhance.get() == 1:
                 image, labels_list = ImageTools.generate_edge_enhance_copy(origin_image, labels_list)
+                save(image, labels_list, image_name)
+            if self.check_var_noise_reduction.get() == 1:
+                image, labels_list = ImageTools.generate_noise_reduction_copy(origin_image, labels_list)
                 save(image, labels_list, image_name)
 
 

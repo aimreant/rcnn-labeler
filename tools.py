@@ -78,7 +78,7 @@ class XMLTools:
     def create_xml(self, origin):
 
         self.remove_exist_xml()
-        self.remove_output_images()
+        # self.remove_output_images()
 
         if origin:
             images_path = ORIGIN_IMAGES_PATH
@@ -392,7 +392,6 @@ class ImageTools:
         else:
             return image, labels_list
 
-
     @staticmethod
     def generate_blur_copy(image, labels_list):
         image = image.filter(ImageFilter.BLUR).filter(ImageFilter.GaussianBlur)
@@ -411,5 +410,44 @@ class ImageTools:
     @staticmethod
     def generate_edge_enhance_copy(image, labels_list):
         image = image.filter(ImageFilter.EDGE_ENHANCE_MORE).filter(ImageFilter.EDGE_ENHANCE_MORE)
+        return image, labels_list
+
+    @staticmethod
+    def generate_noise_reduction_copy(image, labels_list):
+        # TODO can do, but need to optimize
+
+        def is_noise(img, x, y):
+            # For RGB
+            threshold = 60
+            area_diff_range = [-1, 0, 1]
+
+            def get_distance(p1, p2):
+                if len(p1) != 3 and len(p2) != 3:
+                    return 0
+                return int(((p1[0] - p2[0]) ** 2 + (p1[1] - p2[1]) ** 2 + (p1[2] - p2[2]) ** 2) ** 0.5)
+            diff_pixel = 0
+            distance_list = []
+            for y_diff in area_diff_range:
+                for x_diff in area_diff_range:
+                    current_distance = get_distance(img.getpixel((x, y)), img.getpixel((x + x_diff, y + y_diff)))
+                    distance_list.append((x + x_diff, y + y_diff, current_distance))
+                    if current_distance > threshold:
+                        diff_pixel += 1
+
+            if diff_pixel > 4:
+                distance_list = sorted(distance_list, key=lambda d: d[2])
+                aim_point = distance_list[4]
+                return True, img.getpixel((aim_point[0], aim_point[1]))
+            else:
+                return False, (0, 0, 0)
+
+        noise_reduction_time = 2
+        for t in xrange(1, noise_reduction_time):
+            for x in xrange(1, image.size[0] - 1):
+                for y in xrange(1, image.size[1] - 1):
+                    noise_res = is_noise(image, x, y)
+                    if noise_res[0]:
+                        image.putpixel((x, y), noise_res[1])
+
         return image, labels_list
 
