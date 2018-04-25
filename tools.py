@@ -360,29 +360,48 @@ class ImageTools:
 
         image = Image.open(image_path)
         origin_image = image.convert("RGB")
+        image = origin_image
         image_name = image_path.split('/')[-1]
         labels_list = ImageTools.load_one_label(image_name)
-        if 'zoom' in options_dict and options_dict['zoom'] == 1:
-            image, labels_list = ImageTools.generate_zoom_copy(origin_image, labels_list)
+        origin_labels_list = labels_list
+        if 'generate_one' in options_dict and options_dict['generate_one'] == 1:
+            if 'zoom' in options_dict and options_dict['zoom'] == 1:
+                image, labels_list = ImageTools.generate_zoom_copy(image, labels_list)
+            if 'rotate_1' in options_dict and options_dict['rotate_1'] == 1:
+                image, labels_list = ImageTools.generate_rotate_copy(image, labels_list, 270)
+            if 'rotate_2' in options_dict and options_dict['rotate_2'] == 1:
+                image, labels_list = ImageTools.generate_rotate_copy(image, labels_list, 180)
+            if 'blur' in options_dict and options_dict['blur'] == 1:
+                image, labels_list = ImageTools.generate_blur_copy(image, labels_list)
+            if 'impurity' in options_dict and options_dict['impurity'] == 1:
+                image, labels_list = ImageTools.generate_impurity_copy(image, labels_list)
+            if 'edge_enhance' in options_dict and options_dict['edge_enhance'] == 1:
+                image, labels_list = ImageTools.generate_edge_enhance_copy(image, labels_list)
+            if 'noise_reduction' in options_dict and options_dict['noise_reduction'] == 1:
+                image, labels_list = ImageTools.generate_noise_reduction_copy(image, labels_list)
             save(image, labels_list, image_name)
-        if 'rotate_1' in options_dict and options_dict['rotate_1'] == 1:
-            image, labels_list = ImageTools.generate_rotate_copy(origin_image, labels_list, 270)
-            save(image, labels_list, image_name)
-        if 'rotate_2' in options_dict and options_dict['rotate_2'] == 1:
-            image, labels_list = ImageTools.generate_rotate_copy(origin_image, labels_list, 180)
-            save(image, labels_list, image_name)
-        if 'blur' in options_dict and options_dict['blur'] == 1:
-            image, labels_list = ImageTools.generate_blur_copy(origin_image, labels_list)
-            save(image, labels_list, image_name)
-        if 'impurity' in options_dict and options_dict['impurity'] == 1:
-            image, labels_list = ImageTools.generate_impurity_copy(origin_image, labels_list)
-            save(image, labels_list, image_name)
-        if 'edge_enhance' in options_dict and options_dict['edge_enhance'] == 1:
-            image, labels_list = ImageTools.generate_edge_enhance_copy(origin_image, labels_list)
-            save(image, labels_list, image_name)
-        if 'noise_reduction' in options_dict and options_dict['noise_reduction'] == 1:
-            image, labels_list = ImageTools.generate_noise_reduction_copy(origin_image, labels_list)
-            save(image, labels_list, image_name)
+        else:
+            if 'zoom' in options_dict and options_dict['zoom'] == 1:
+                image, labels_list = ImageTools.generate_zoom_copy(origin_image, origin_labels_list)
+                save(image, labels_list, image_name)
+            if 'rotate_1' in options_dict and options_dict['rotate_1'] == 1:
+                image, labels_list = ImageTools.generate_rotate_copy(origin_image, origin_labels_list, 270)
+                save(image, labels_list, image_name)
+            if 'rotate_2' in options_dict and options_dict['rotate_2'] == 1:
+                image, labels_list = ImageTools.generate_rotate_copy(origin_image, origin_labels_list, 180)
+                save(image, labels_list, image_name)
+            if 'blur' in options_dict and options_dict['blur'] == 1:
+                image, labels_list = ImageTools.generate_blur_copy(origin_image, origin_labels_list)
+                save(image, labels_list, image_name)
+            if 'impurity' in options_dict and options_dict['impurity'] == 1:
+                image, labels_list = ImageTools.generate_impurity_copy(origin_image, origin_labels_list)
+                save(image, labels_list, image_name)
+            if 'edge_enhance' in options_dict and options_dict['edge_enhance'] == 1:
+                image, labels_list = ImageTools.generate_edge_enhance_copy(origin_image, origin_labels_list)
+                save(image, labels_list, image_name)
+            if 'noise_reduction' in options_dict and options_dict['noise_reduction'] == 1:
+                image, labels_list = ImageTools.generate_noise_reduction_copy(origin_image, origin_labels_list)
+                save(image, labels_list, image_name)
 
     @staticmethod
     def generate_copy(images_list, options_dict):

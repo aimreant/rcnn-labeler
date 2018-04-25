@@ -153,54 +153,60 @@ class LabelTool:
         self.label_delete_mode.place(x=0, y=470, width=100, height=20)
 
         # Build checkbox -----------------------------------------------------
+        # Copy options
+        self.label_copy_option = Label(self.frame_console, text=text_copy_option, bg='gray', anchor='w')
+        self.label_copy_option.place(x=0, y=5, width=350, height=20)
+
         self.check_var_rotate_1 = IntVar()
         self.check_rotate_1 = Checkbutton(self.frame_console, text=text_rotate_1, variable=self.check_var_rotate_1)
         self.check_rotate_1.deselect()
-        self.check_rotate_1.grid(row=0, column=0, sticky=W)
+        self.check_rotate_1.place(x=0, y=25, width=150, height=20)
 
         self.check_var_rotate_2 = IntVar()
         self.check_rotate_2 = Checkbutton(self.frame_console, text=text_rotate_2, variable=self.check_var_rotate_2)
         self.check_rotate_2.deselect()
-        self.check_rotate_2.grid(row=1, column=0, sticky=W)
-
-        self.check_var_zoom = IntVar()
-        self.check_zoom = Checkbutton(self.frame_console, text=text_zoom, variable=self.check_var_zoom)
-        self.check_zoom.deselect()
-        self.check_zoom.grid(row=2, column=0, sticky=W)
-
-        self.check_var_impurity = IntVar()
-        self.check_impurity = Checkbutton(self.frame_console, text=text_impurity, variable=self.check_var_impurity)
-        self.check_impurity.deselect()
-        self.check_impurity.grid(row=0, column=1, sticky=W)
-
-        self.check_var_blur = IntVar()
-        self.check_blur = Checkbutton(self.frame_console, text=text_blur, variable=self.check_var_blur)
-        self.check_blur.deselect()
-        self.check_blur.grid(row=1, column=1, sticky=W)
+        self.check_rotate_2.place(x=0, y=45, width=150, height=20)
 
         self.check_var_edge_enhance = IntVar()
         self.check_edge_enhance = Checkbutton(self.frame_console, text=text_edge_enhance,
                                               variable=self.check_var_edge_enhance)
         self.check_edge_enhance.deselect()
-        self.check_edge_enhance.grid(row=2, column=1, sticky=W)
+        self.check_edge_enhance.place(x=0, y=65, width=150, height=20)
+
+        self.check_var_impurity = IntVar()
+        self.check_impurity = Checkbutton(self.frame_console, text=text_impurity, variable=self.check_var_impurity)
+        self.check_impurity.deselect()
+        self.check_impurity.place(x=150, y=25, width=150, height=20)
+
+        self.check_var_blur = IntVar()
+        self.check_blur = Checkbutton(self.frame_console, text=text_blur, variable=self.check_var_blur)
+        self.check_blur.deselect()
+        self.check_blur.place(x=150, y=45, width=150, height=20)
+
+        self.check_var_zoom = IntVar()
+        self.check_zoom = Checkbutton(self.frame_console, text=text_zoom, variable=self.check_var_zoom)
+        self.check_zoom.deselect()
+        self.check_zoom.place(x=150, y=65, width=150, height=20)
 
         self.check_var_noise_reduction = IntVar()
         self.check_noise_reduction = Checkbutton(self.frame_console, text=text_noise_reduction,
                                                  variable=self.check_var_noise_reduction)
         self.check_noise_reduction.deselect()
-        self.check_noise_reduction.grid(row=3, column=1, sticky=W)
+        self.check_noise_reduction.place(x=150, y=85, width=150, height=20)
+
+        # Generate options
+        self.label_generate_option = Label(self.frame_console, text=text_generate_option, bg='gray', anchor='w')
+        self.label_generate_option.place(x=345, y=5, width=250, height=20)
 
         self.check_var_generate_one = IntVar()
         self.check_generate_one = Checkbutton(self.frame_console, text=text_generate_one,
                                               variable=self.check_var_generate_one)
         self.check_generate_one.deselect()
-        self.check_generate_one.grid(row=4, column=1, sticky=W)
+        self.check_generate_one.place(x=345, y=25, width=150, height=23)
 
         self.generate_xml_label_bottom = Button(self.frame_console, text=text_generate_xml,
                                                 command=self.create_xml_and_set)
-        self.generate_xml_label_bottom.grid(row=5, column=0, columnspan=2, sticky=W)
-        # self.generate_set_label_bottom = Button(self.frame_console, text=text_generate_set, command=self.create_set)
-        # self.generate_set_label_bottom.grid(row=1, column=1, rowspan=2)
+        self.generate_xml_label_bottom.place(x=345, y=122, width=250, height=23)
 
         # Initial mouse and others in canvas
         self.mouse_state = {
@@ -700,6 +706,7 @@ class LabelTool:
 
     def generate_copy(self):
         options_dict = {
+            'generate_one': self.check_var_generate_one.get(),
             'zoom': self.check_var_zoom.get(),
             'rotate_1': self.check_var_rotate_1.get(),
             'rotate_2': self.check_var_rotate_2.get(),
