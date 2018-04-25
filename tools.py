@@ -484,12 +484,16 @@ class ImageTools:
 
     @staticmethod
     def generate_noise_reduction_copy(image, labels_list):
+        x_min, y_min, x_max, y_max = ImageTools.calculate_labels(labels_list)
+
         for t in xrange(0, NOISE_REDUCTION_TIME):
-            for x in xrange(1, image.size[0] - 1):
-                for y in xrange(1, image.size[1] - 1):
+            for x in xrange(x_min, x_max):
+                for y in xrange(y_min, y_max):
                     noise_res = ImageTools.is_noise(image, x, y)
                     if noise_res[0]:
                         image.putpixel((x, y), noise_res[1])
+
+        image = image.filter(ImageFilter.MedianFilter(3)).filter(ImageFilter.SHARPEN)
 
         return image, labels_list
 
