@@ -12,9 +12,6 @@ from PIL import ImageTk
 from tkMessageBox import *
 from lang import *
 from tools import *
-from pathos import multiprocessing
-from pathos.multiprocessing import ProcessingPool as Pool
-from functools import partial
 
 
 class LabelTool:
@@ -712,10 +709,7 @@ class LabelTool:
             'noise_reduction': self.check_var_noise_reduction.get(),
         }
 
-        if self.pool is None:
-            self.pool = Pool(multiprocessing.cpu_count())
-        generate_work = partial(ImageTools.generate_copy_for_one_img, options_dict=options_dict)
-        self.pool.map(generate_work, self.origin_images_list)
+        ImageTools.generate_copy(self.origin_images_list, options_dict)
 
 
 if __name__ == '__main__':

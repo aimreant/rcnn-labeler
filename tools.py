@@ -15,6 +15,9 @@ import glob
 from PIL import Image, ImageFilter
 import random
 import string
+from pathos import multiprocessing
+from pathos.multiprocessing import ProcessingPool as Pool
+from functools import partial
 
 
 class XMLTools:
@@ -382,6 +385,12 @@ class ImageTools:
             save(image, labels_list, image_name)
 
     @staticmethod
+    def generate_copy(images_list, options_dict):
+        pool = Pool(multiprocessing.cpu_count())
+        generate_work = partial(ImageTools.generate_copy_for_one_img, options_dict=options_dict)
+        pool.map(generate_work, images_list)
+
+    @staticmethod
     def generate_zoom_copy(image, labels_list):
         width, height = image.size
         x_min, y_min, x_max, y_max = ImageTools.calculate_labels(labels_list)
@@ -447,37 +456,38 @@ class ImageTools:
         return image, labels_list
 
     @staticmethod
+    def is_noise(img, x, y):
+        """
+        For RGB
+        Judge whether the pixel(x, y) is noise
+        """
+        def get_distance(p1, p2):
+            if len(p1) != 3 and len(p2) != 3:
+                return 0
+            return int(((p1[0] - p2[0]) ** 2 + (p1[1] - p2[1]) ** 2 + (p1[2] - p2[2]) ** 2) ** 0.5)
+
+        diff_pixel = 0
+        distance_list = []
+        for y_diff in AREA_DIFF_RANGE:
+            for x_diff in AREA_DIFF_RANGE:
+                current_distance = get_distance(img.getpixel((x, y)), img.getpixel((x + x_diff, y + y_diff)))
+                distance_list.append((x + x_diff, y + y_diff, current_distance))
+                if current_distance > NOISE_THRESHOLD:
+                    diff_pixel += 1
+
+        if diff_pixel > 4:
+            distance_list = sorted(distance_list, key=lambda d: d[2])
+            aim_point = distance_list[4]
+            return True, img.getpixel((aim_point[0], aim_point[1]))
+        else:
+            return False, (0, 0, 0)
+
+    @staticmethod
     def generate_noise_reduction_copy(image, labels_list):
-        # TODO can do, but need to optimize
-
-        def is_noise(img, x, y):
-            # For RGB
-
-            def get_distance(p1, p2):
-                if len(p1) != 3 and len(p2) != 3:
-                    return 0
-                return int(((p1[0] - p2[0]) ** 2 + (p1[1] - p2[1]) ** 2 + (p1[2] - p2[2]) ** 2) ** 0.5)
-            diff_pixel = 0
-            distance_list = []
-            for y_diff in AREA_DIFF_RANGE:
-                for x_diff in AREA_DIFF_RANGE:
-                    current_distance = get_distance(img.getpixel((x, y)), img.getpixel((x + x_diff, y + y_diff)))
-                    distance_list.append((x + x_diff, y + y_diff, current_distance))
-                    if current_distance > NOISE_THRESHOLD:
-                        diff_pixel += 1
-
-            if diff_pixel > 4:
-                distance_list = sorted(distance_list, key=lambda d: d[2])
-                aim_point = distance_list[4]
-                return True, img.getpixel((aim_point[0], aim_point[1]))
-            else:
-                return False, (0, 0, 0)
-
-        noise_reduction_time = 2
-        for t in xrange(1, noise_reduction_time):
+        for t in xrange(0, NOISE_REDUCTION_TIME):
             for x in xrange(1, image.size[0] - 1):
                 for y in xrange(1, image.size[1] - 1):
-                    noise_res = is_noise(image, x, y)
+                    noise_res = ImageTools.is_noise(image, x, y)
                     if noise_res[0]:
                         image.putpixel((x, y), noise_res[1])
 
