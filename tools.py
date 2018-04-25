@@ -348,6 +348,40 @@ class ImageTools:
         return x_min, y_min, x_max, y_max
 
     @staticmethod
+    def generate_copy_for_one_img(image_path, options_dict):
+        def save(_image, _labels_list, _image_name):
+            _image_name = ImageTools.get_converted_jpg_image_name(_image_name)
+            new_image_name = ImageTools.generate_random_name(_image_name)
+            ImageTools.save_one_label(new_image_name, _labels_list)
+            image.save(os.path.join(OUTPUT_IMAGES_PATH, new_image_name))
+
+        image = Image.open(image_path)
+        origin_image = image.convert("RGB")
+        image_name = image_path.split('/')[-1]
+        labels_list = ImageTools.load_one_label(image_name)
+        if 'zoom' in options_dict and options_dict['zoom'] == 1:
+            image, labels_list = ImageTools.generate_zoom_copy(origin_image, labels_list)
+            save(image, labels_list, image_name)
+        if 'rotate_1' in options_dict and options_dict['rotate_1'] == 1:
+            image, labels_list = ImageTools.generate_rotate_copy(origin_image, labels_list, 270)
+            save(image, labels_list, image_name)
+        if 'rotate_2' in options_dict and options_dict['rotate_2'] == 1:
+            image, labels_list = ImageTools.generate_rotate_copy(origin_image, labels_list, 180)
+            save(image, labels_list, image_name)
+        if 'blur' in options_dict and options_dict['blur'] == 1:
+            image, labels_list = ImageTools.generate_blur_copy(origin_image, labels_list)
+            save(image, labels_list, image_name)
+        if 'impurity' in options_dict and options_dict['impurity'] == 1:
+            image, labels_list = ImageTools.generate_impurity_copy(origin_image, labels_list)
+            save(image, labels_list, image_name)
+        if 'edge_enhance' in options_dict and options_dict['edge_enhance'] == 1:
+            image, labels_list = ImageTools.generate_edge_enhance_copy(origin_image, labels_list)
+            save(image, labels_list, image_name)
+        if 'noise_reduction' in options_dict and options_dict['noise_reduction'] == 1:
+            image, labels_list = ImageTools.generate_noise_reduction_copy(origin_image, labels_list)
+            save(image, labels_list, image_name)
+
+    @staticmethod
     def generate_zoom_copy(image, labels_list):
         width, height = image.size
         x_min, y_min, x_max, y_max = ImageTools.calculate_labels(labels_list)
@@ -418,8 +452,6 @@ class ImageTools:
 
         def is_noise(img, x, y):
             # For RGB
-            threshold = 60
-            area_diff_range = [-1, 0, 1]
 
             def get_distance(p1, p2):
                 if len(p1) != 3 and len(p2) != 3:
@@ -427,11 +459,11 @@ class ImageTools:
                 return int(((p1[0] - p2[0]) ** 2 + (p1[1] - p2[1]) ** 2 + (p1[2] - p2[2]) ** 2) ** 0.5)
             diff_pixel = 0
             distance_list = []
-            for y_diff in area_diff_range:
-                for x_diff in area_diff_range:
+            for y_diff in AREA_DIFF_RANGE:
+                for x_diff in AREA_DIFF_RANGE:
                     current_distance = get_distance(img.getpixel((x, y)), img.getpixel((x + x_diff, y + y_diff)))
                     distance_list.append((x + x_diff, y + y_diff, current_distance))
-                    if current_distance > threshold:
+                    if current_distance > NOISE_THRESHOLD:
                         diff_pixel += 1
 
             if diff_pixel > 4:
