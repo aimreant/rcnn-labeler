@@ -221,6 +221,7 @@ class LabelTool:
             'name': 'nolabel',
             'index': 0
         }
+        self.cur_file_index = 0
         self.x_line = None
         self.y_line = None
         self.cross_line_1 = None
@@ -280,7 +281,7 @@ class LabelTool:
         self.total_images_size = len(self.origin_images_list)
         for image in self.origin_images_list:
             file_name = image.split('/')[-1]
-            self.insert_to_file_list(file_name)
+            self.insert_to_file_list(file_name, handled=self.image_has_label(file_name))
 
     def has_same_names(self):
         names_without_suffix = []
@@ -305,6 +306,34 @@ class LabelTool:
         self.file_list.delete(index)
         self.file_list.insert(index, file_name_in_list_str)
         self.file_list.selection_set(index)
+
+    def mark_file_by_name(self, file_name, handled=True):
+        for i in range(0, self.file_list.size()):
+            i_file = self.file_list.get(i)[5:]
+            if file_name == i_file:
+                if handled:
+                    file_name_in_list_str = ' [v] ' + file_name
+                else:
+                    file_name_in_list_str = ' [x] ' + file_name
+
+                self.file_list.delete(i)
+                self.file_list.insert(i, file_name_in_list_str)
+                break
+
+    def image_has_label(self, image_name):
+        file_name = ImageTools.get_label_txt_name(image_name)
+        label_file_path = os.path.join(self.origin_labels_dir, file_name)
+
+        if not os.path.exists(label_file_path):
+            return False
+
+        if os.path.getsize(label_file_path) == 0:
+            return False
+
+        if int(open(label_file_path, "r").readline().strip()) == 0:
+            return False
+
+        return True
 
     def mark_label(self, index, handled=True, selection_set=True):
         label_name = self.label_list.get(index)[5:]
@@ -369,6 +398,7 @@ class LabelTool:
         self.image_area.create_image(0, 0, image=self.tk_image, anchor=NW)
         self.image_area.configure(scrollregion=(0, 0, width, height))
 
+        self.cur_file_index = self.file_list.curselection()
         self.load_labels(self.cur_file_name)
 
     def zoom_in_image(self):
@@ -455,6 +485,7 @@ class LabelTool:
 
                 self.box_id = None
                 self.mark_label(self.cur_label['index'], True)
+                self.mark_file(self.cur_file_index, True)
                 self.save_labels()
 
             else:
@@ -632,10 +663,11 @@ class LabelTool:
         return box_id
 
     def delete_label_box(self, box_id):
-        self.image_area.delete(box_id)
-        self.box_id_list.remove(box_id)
-        self.image_area.delete(self.box_text_list[box_id])
-        self.box_text_list[box_id] = None
+        for bid in self.box_text_list:
+            self.image_area.delete(bid)
+            self.box_id_list.remove(bid)
+            self.image_area.delete(self.box_text_list[bid])
+            self.box_text_list[bid] = None
 
         # Delete box cross
         self.image_area.delete(self.cross_line_1)
@@ -644,6 +676,9 @@ class LabelTool:
         # Refresh label marks
         self.save_labels()
         self.load_labels(self.cur_file_name)
+
+        if len(self.labeled_list_origin) == 0:
+            self.mark_file(self.cur_file_index, False)
 
     def switch_view_mode(self):
         self.switch_mode(VIEW_MODE)
