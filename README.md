@@ -6,6 +6,12 @@
 ## 运行环境
  - Python 2.7.13
  - 库cv2
+
+```shell
+pip install numpy Matplotlib
+pip install opencv-python
+sudo pip install -r requirements.txt
+```
  
 ## 切换语言
  - 于config.py中修改LANGUAGE的值。
