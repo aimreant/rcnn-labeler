@@ -18,6 +18,7 @@ import string
 from pathos import multiprocessing
 from pathos.multiprocessing import ProcessingPool as Pool
 from functools import partial
+from app import LabelTool
 
 
 class XMLTools:
@@ -208,6 +209,8 @@ class TrainTools:
             len_tv = len_split / 2
             for image in image_list:
                 image_name = os.path.split(image)[-1].split('.')[0]
+                if not ImageTools.image_has_label(image_name + '.jpg'):
+                    continue
                 if i < len_split:
                     f_test.write(image_name + '\n')
                     i += 1
@@ -274,9 +277,10 @@ class ImageTools:
             return
         image = Image.open(image_path)
         image_name = image_path.split('/')[-1]
-        image = image.convert('RGB')
-        new_image_name = ImageTools.get_converted_jpg_image_name(image_name)
-        image.save(os.path.join(OUTPUT_IMAGES_PATH, new_image_name))
+        if ImageTools.image_has_label(image_name):
+            image = image.convert('RGB')
+            new_image_name = ImageTools.get_converted_jpg_image_name(image_name)
+            image.save(os.path.join(OUTPUT_IMAGES_PATH, new_image_name))
 
     @staticmethod
     def convert_all_images_to_jpg():
@@ -515,4 +519,20 @@ class ImageTools:
         image = image.filter(ImageFilter.MedianFilter(3)).filter(ImageFilter.SHARPEN)
 
         return image, labels_list
+
+    @staticmethod
+    def image_has_label(image_name):
+        file_name = ImageTools.get_label_txt_name(image_name)
+        label_file_path = os.path.join(os.path.join('.', LABELS_PATH), file_name)
+
+        if not os.path.exists(label_file_path):
+            return False
+
+        if os.path.getsize(label_file_path) == 0:
+            return False
+
+        if int(open(label_file_path, "r").readline().strip()) == 0:
+            return False
+
+        return True
 

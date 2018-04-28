@@ -281,7 +281,7 @@ class LabelTool:
         self.total_images_size = len(self.origin_images_list)
         for image in self.origin_images_list:
             file_name = image.split('/')[-1]
-            self.insert_to_file_list(file_name, handled=self.image_has_label(file_name))
+            self.insert_to_file_list(file_name, handled=ImageTools.image_has_label(file_name))
 
     def has_same_names(self):
         names_without_suffix = []
@@ -319,21 +319,6 @@ class LabelTool:
                 self.file_list.delete(i)
                 self.file_list.insert(i, file_name_in_list_str)
                 break
-
-    def image_has_label(self, image_name):
-        file_name = ImageTools.get_label_txt_name(image_name)
-        label_file_path = os.path.join(self.origin_labels_dir, file_name)
-
-        if not os.path.exists(label_file_path):
-            return False
-
-        if os.path.getsize(label_file_path) == 0:
-            return False
-
-        if int(open(label_file_path, "r").readline().strip()) == 0:
-            return False
-
-        return True
 
     def mark_label(self, index, handled=True, selection_set=True):
         label_name = self.label_list.get(index)[5:]
