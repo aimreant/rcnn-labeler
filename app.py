@@ -32,6 +32,8 @@ class LabelTool:
         self.box_total_index = 0  # for color
         self.cur_mode = MODE[0]
         self.converted = False
+        self.total_image_count = 0
+        self.total_labeled_image_count = 0
 
         # Set main parameters -----------------------------------------------
         self.parent = master
@@ -279,9 +281,11 @@ class LabelTool:
 
         self.cur = 0
         self.total_images_size = len(self.origin_images_list)
+
         for image in self.origin_images_list:
             file_name = image.split('/')[-1]
             self.insert_to_file_list(file_name, handled=ImageTools.image_has_label(file_name))
+        self.update_file_list_label()
 
     def has_same_names(self):
         names_without_suffix = []
@@ -292,33 +296,47 @@ class LabelTool:
 
     def insert_to_file_list(self, file_name, handled=False):
         if handled:
+            self.total_labeled_image_count += 1
             file_name_in_list_str = ' [v] ' + file_name
         else:
             file_name_in_list_str = ' [x] ' + file_name
+
+        self.total_image_count += 1
         self.file_list.insert(END, file_name_in_list_str)
 
     def mark_file(self, index, handled=True):
         file_name = self.file_list.get(index)[5:]
         if handled:
+            self.total_labeled_image_count += 1
             file_name_in_list_str = ' [v] ' + file_name
         else:
+            self.total_labeled_image_count -= 1
             file_name_in_list_str = ' [x] ' + file_name
         self.file_list.delete(index)
         self.file_list.insert(index, file_name_in_list_str)
         self.file_list.selection_set(index)
+        self.update_file_list_label()
 
     def mark_file_by_name(self, file_name, handled=True):
         for i in range(0, self.file_list.size()):
             i_file = self.file_list.get(i)[5:]
             if file_name == i_file:
                 if handled:
+                    self.total_labeled_image_count += 1
                     file_name_in_list_str = ' [v] ' + file_name
                 else:
+                    self.total_labeled_image_count -= 1
                     file_name_in_list_str = ' [x] ' + file_name
 
                 self.file_list.delete(i)
                 self.file_list.insert(i, file_name_in_list_str)
                 break
+        self.update_file_list_label()
+
+    def update_file_list_label(self):
+        self.file_list_label.config(
+            text=text_images_directory + '  (' + str(self.total_labeled_image_count) + '/' + str(
+                self.total_image_count) + ')')
 
     def mark_label(self, index, handled=True, selection_set=True):
         label_name = self.label_list.get(index)[5:]
