@@ -175,6 +175,11 @@ class LabelTool:
         self.check_edge_enhance.deselect()
         self.check_edge_enhance.place(x=0, y=65, width=150, height=20)
 
+        self.check_var_gray = IntVar()
+        self.check_gray = Checkbutton(self.frame_console, text=text_gray, variable=self.check_var_gray)
+        self.check_gray.deselect()
+        self.check_gray.place(x=0, y=85, width=150, height=20)
+
         self.check_var_impurity = IntVar()
         self.check_impurity = Checkbutton(self.frame_console, text=text_impurity, variable=self.check_var_impurity)
         self.check_impurity.deselect()
@@ -752,6 +757,7 @@ class LabelTool:
             'impurity': self.check_var_impurity.get(),
             'edge_enhance': self.check_var_edge_enhance.get(),
             'noise_reduction': self.check_var_noise_reduction.get(),
+            'gray': self.check_var_gray.get()
         }
 
         ImageTools.generate_copy(self.origin_images_list, options_dict)

@@ -383,6 +383,8 @@ class ImageTools:
                 image, labels_list = ImageTools.generate_edge_enhance_copy(image, labels_list)
             if 'noise_reduction' in options_dict and options_dict['noise_reduction'] == 1:
                 image, labels_list = ImageTools.generate_noise_reduction_copy(image, labels_list)
+            if 'gray' in options_dict and options_dict['gray'] == 1:
+                image, labels_list = ImageTools.generate_gray_copy(image, labels_list)
             save(image, labels_list, image_name)
         else:
             if 'zoom' in options_dict and options_dict['zoom'] == 1:
@@ -405,6 +407,9 @@ class ImageTools:
                 save(image, labels_list, image_name)
             if 'noise_reduction' in options_dict and options_dict['noise_reduction'] == 1:
                 image, labels_list = ImageTools.generate_noise_reduction_copy(origin_image, origin_labels_list)
+                save(image, labels_list, image_name)
+            if 'gray' in options_dict and options_dict['gray'] == 1:
+                image, labels_list = ImageTools.generate_gray_copy(origin_image, origin_labels_list)
                 save(image, labels_list, image_name)
 
     @staticmethod
@@ -518,6 +523,11 @@ class ImageTools:
 
         image = image.filter(ImageFilter.MedianFilter(3)).filter(ImageFilter.SHARPEN)
 
+        return image, labels_list
+
+    @staticmethod
+    def generate_gray_copy(image, labels_list):
+        image = image.convert('L').convert('RGB')
         return image, labels_list
 
     @staticmethod
