@@ -270,6 +270,8 @@ class LabelTool:
         self.origin_images_list = []
         for sf in SUPPORT_FORMAT:
             self.origin_images_list += glob.glob(os.path.join(self.origin_images_dir, '*' + sf))
+            
+        self.origin_images_list.sort()
 
         if len(self.origin_images_list) == 0:
             showerror(text_no_images_title, text_no_images_info)
