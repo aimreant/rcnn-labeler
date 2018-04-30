@@ -356,6 +356,9 @@ class ImageTools:
 
     @staticmethod
     def generate_copy_for_one_img(image_path, options_dict):
+        if not ImageTools.image_has_label(image_path.split('/')[-1]):
+            return
+
         def save(_image, _labels_list, _image_name):
             _image_name = ImageTools.get_converted_jpg_image_name(_image_name)
             new_image_name = ImageTools.generate_random_name(_image_name)
@@ -417,6 +420,10 @@ class ImageTools:
         pool = Pool(multiprocessing.cpu_count())
         generate_work = partial(ImageTools.generate_copy_for_one_img, options_dict=options_dict)
         pool.map(generate_work, images_list)
+
+        # for img in images_list:
+        #     print(img)
+        #     ImageTools.generate_copy_for_one_img(image_path=img, options_dict=options_dict)
 
     @staticmethod
     def generate_zoom_copy(image, labels_list):
