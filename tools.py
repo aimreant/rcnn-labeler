@@ -19,6 +19,7 @@ from pathos import multiprocessing
 from pathos.multiprocessing import ProcessingPool as Pool
 from functools import partial
 from app import LabelTool
+import datetime
 
 
 class XMLTools:
@@ -417,13 +418,18 @@ class ImageTools:
 
     @staticmethod
     def generate_copy(images_list, options_dict):
+        start_time = datetime.datetime.now()
+
         pool = Pool(multiprocessing.cpu_count())
         generate_work = partial(ImageTools.generate_copy_for_one_img, options_dict=options_dict)
         pool.map(generate_work, images_list)
 
         # for img in images_list:
-        #     print(img)
         #     ImageTools.generate_copy_for_one_img(image_path=img, options_dict=options_dict)
+
+        end_time = datetime.datetime.now()
+
+        # print((end_time - start_time).seconds)
 
     @staticmethod
     def generate_zoom_copy(image, labels_list):
