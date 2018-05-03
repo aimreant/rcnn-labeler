@@ -175,50 +175,68 @@ class LabelTool:
         # Build checkbox -----------------------------------------------------
         # Copy options
         print('[Info]Building options area...')
+        self.label_processing = Label(self.frame_console, text=text_processing_function, bg='gray', anchor='w')
+        self.label_processing.place(x=0, y=5, width=150, height=20)
+
+        self.rotate_button = Button(self.frame_console, text=text_rotate_button, command=self.rotate_canvas_image)
+        self.rotate_button.place(x=0, y=25, width=100, height=23)
+
+        self.edge_enhance_button = Button(self.frame_console, text=text_edge_enhance_button, command=self.edge_enhance_canvas_image)
+        self.edge_enhance_button.place(x=0, y=50, width=100, height=23)
+
+        self.noise_reduction_button = Button(self.frame_console, text=text_noise_reduction_button, command=self.noise_reduction_canvas_image)
+        self.noise_reduction_button.place(x=0, y=75, width=100, height=23)
+
+        self.reset_image = Button(self.frame_console, text=text_reset_canvas_image, command=self.reset_canvas_image)
+        self.reset_image.place(x=0, y=100, width=100, height=23)
+
+        self.save_image = Button(self.frame_console, text=text_save_canvas_image, command=self.save_canvas_image)
+        self.save_image.place(x=0, y=125, width=100, height=23)
+
         self.label_copy_option = Label(self.frame_console, text=text_copy_option, bg='gray', anchor='w')
-        self.label_copy_option.place(x=0, y=5, width=IMAGE_AREA_SIZE[0]-250, height=20)
+        self.label_copy_option.place(x=150, y=5, width=IMAGE_AREA_SIZE[0] - 250 - 150, height=20)
 
         self.check_var_rotate_1 = IntVar()
         self.check_rotate_1 = Checkbutton(self.frame_console, text=text_rotate_1, variable=self.check_var_rotate_1)
         self.check_rotate_1.deselect()
-        self.check_rotate_1.place(x=0, y=25, width=150, height=20)
+        self.check_rotate_1.place(x=150, y=25, width=150, height=20)
 
         self.check_var_rotate_2 = IntVar()
         self.check_rotate_2 = Checkbutton(self.frame_console, text=text_rotate_2, variable=self.check_var_rotate_2)
         self.check_rotate_2.deselect()
-        self.check_rotate_2.place(x=0, y=45, width=150, height=20)
+        self.check_rotate_2.place(x=150, y=45, width=150, height=20)
 
         self.check_var_edge_enhance = IntVar()
         self.check_edge_enhance = Checkbutton(self.frame_console, text=text_edge_enhance,
                                               variable=self.check_var_edge_enhance)
         self.check_edge_enhance.deselect()
-        self.check_edge_enhance.place(x=0, y=65, width=150, height=20)
+        self.check_edge_enhance.place(x=150, y=65, width=150, height=20)
 
         self.check_var_gray = IntVar()
         self.check_gray = Checkbutton(self.frame_console, text=text_gray, variable=self.check_var_gray)
         self.check_gray.deselect()
-        self.check_gray.place(x=0, y=85, width=150, height=20)
+        self.check_gray.place(x=150, y=85, width=150, height=20)
 
         self.check_var_impurity = IntVar()
         self.check_impurity = Checkbutton(self.frame_console, text=text_impurity, variable=self.check_var_impurity)
         self.check_impurity.deselect()
-        self.check_impurity.place(x=150, y=25, width=150, height=20)
+        self.check_impurity.place(x=300, y=25, width=150, height=20)
 
         self.check_var_blur = IntVar()
         self.check_blur = Checkbutton(self.frame_console, text=text_blur, variable=self.check_var_blur)
         self.check_blur.deselect()
-        self.check_blur.place(x=150, y=45, width=150, height=20)
+        self.check_blur.place(x=300, y=45, width=150, height=20)
 
         self.check_var_zoom = IntVar()
         self.check_zoom = Checkbutton(self.frame_console, text=text_zoom, variable=self.check_var_zoom)
         self.check_zoom.deselect()
-        self.check_zoom.place(x=150, y=65, width=150, height=20)
+        self.check_zoom.place(x=300, y=65, width=150, height=20)
 
         self.check_var_noise_reduction = IntVar()
         self.check_noise_reduction = Checkbutton(self.frame_console, text=text_noise_reduction,
                                                  variable=self.check_var_noise_reduction)
         self.check_noise_reduction.deselect()
-        self.check_noise_reduction.place(x=150, y=85, width=150, height=20)
+        self.check_noise_reduction.place(x=300, y=85, width=150, height=20)
 
         # Generate options
         self.label_generate_option = Label(self.frame_console, text=text_generate_option, bg='gray', anchor='w')
@@ -261,6 +279,7 @@ class LabelTool:
         self.box_id = None
 
         self.cur_image = None
+        self.origin_image = None
         self.tk_image = None
 
         self.cur_scaling = 0.0
@@ -438,6 +457,7 @@ class LabelTool:
         self.label_cur_scaling.config(text=text_scaling_prefix + str(self.cur_scaling) + '%')
 
         self.cur_image = self.cur_image.resize((width, height), Image.ANTIALIAS)
+        self.origin_image = self.cur_image.resize((width, height), Image.ANTIALIAS)
         self.tk_image = ImageTk.PhotoImage(self.cur_image)
         self.image_area.create_image(0, 0, image=self.tk_image, anchor=NW)
         self.image_area.configure(scrollregion=(0, 0, width, height))
@@ -659,7 +679,7 @@ class LabelTool:
         with open(label_file_path, 'w') as f:
             f.write('%d\n' % len(self.labeled_list_origin))
             for label in self.labeled_list_origin:
-                f.write(' '.join(map(str, label[:-1])) + '\n')
+                f.write(' '.join(map(str, label[:5])) + '\n')
 
     def load_labels(self, image_name):
         # load label when select an image
@@ -815,6 +835,50 @@ class LabelTool:
         if res:
             print('[Info]User asks to remove useless labels.')
             ImageTools.remove_unless_labels()
+
+    def change_canvas_image(self, image):
+        scaling_percent = self.cur_scaling * 0.01
+        (width, height) = self.cur_image_origin.size
+        width = int(width * scaling_percent)
+        height = int(height * scaling_percent)
+        self.cur_image_origin = image
+
+        image = image.resize((width, height), Image.ANTIALIAS)
+        self.cur_image = image
+        self.tk_image = ImageTk.PhotoImage(image)
+        self.image_area.create_image(0, 0, image=self.tk_image, anchor=NW)
+
+    def reset_canvas_image(self):
+        self.change_canvas_image(self.origin_image)
+        # self.load_labels(self.cur_file_name)
+        self.select_image(None)
+
+    def save_canvas_image(self):
+        self.cur_image_origin.save(os.path.join(ORIGIN_IMAGES_PATH, self.cur_file_name))
+
+    def rotate_canvas_image(self):
+        if not self.cur_image:
+            return
+        image, labels = ImageTools.generate_rotate_copy(self.cur_image_origin, self.labeled_list_origin, 270)
+        self.change_canvas_image(image)
+        self.labeled_list_origin = labels
+        self.save_labels()
+        self.load_labels(self.cur_file_name)
+        self.save_canvas_image()
+
+    def edge_enhance_canvas_image(self):
+        if not self.cur_image:
+            return
+        image, labels = ImageTools.generate_edge_enhance_copy(self.cur_image_origin, self.labeled_list_origin)
+        self.change_canvas_image(image)
+        self.load_labels(self.cur_file_name)
+
+    def noise_reduction_canvas_image(self):
+        if not self.cur_image:
+            return
+        image, labels = ImageTools.generate_noise_reduction_copy(self.cur_image_origin, self.labeled_list_origin, True)
+        self.change_canvas_image(image)
+        self.load_labels(self.cur_file_name)
 
 
 if __name__ == '__main__':
