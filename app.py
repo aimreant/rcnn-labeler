@@ -232,7 +232,11 @@ class LabelTool:
 
         self.generate_xml_label_button = Button(self.frame_console, text=text_generate_xml,
                                                 command=self.create_xml_and_set)
-        self.generate_xml_label_button.place(x=IMAGE_AREA_SIZE[0]-250, y=122, width=250, height=23)
+        self.generate_xml_label_button.place(x=IMAGE_AREA_SIZE[0]-250, y=97, width=250, height=23)
+
+        self.remove_useless_labels_button = Button(self.frame_console, text=text_remove_useless_labels,
+                                                   command=self.remove_useless_labels)
+        self.remove_useless_labels_button.place(x=IMAGE_AREA_SIZE[0] - 250, y=122, width=250, height=23)
 
         # Initial mouse and others in canvas
         self.mouse_state = {
@@ -278,6 +282,8 @@ class LabelTool:
         self.xml_tools = None
         self.train_tools = None
         self.pool = None
+
+        print('[Info]Start work.')
 
     def __del__(self):
         if self.pool is not None:
@@ -766,14 +772,20 @@ class LabelTool:
         return cur_x, cur_y, cur_x_origin, cur_y_origin
 
     def create_xml_and_set(self):
+        print('[Info]Start to create xml and set...')
         self.convert()
 
         if self.xml_tools is None:
             self.xml_tools = XMLTools()
+        print('[Info]Creating xml...')
         self.xml_tools.create_xml(not self.converted)
+
         if self.train_tools is None:
             self.train_tools = TrainTools()
+        print('[Info]Creating set...')
         self.train_tools.create_set(not self.converted)
+
+        print('[Info]Creating xml and set done.')
 
     def convert(self):
         if self.xml_tools is None:
@@ -797,6 +809,12 @@ class LabelTool:
         }
 
         ImageTools.generate_copy(self.origin_images_list, options_dict)
+
+    def remove_useless_labels(self):
+        res = askokcancel(text_remove_useless_labels_title, text_remove_useless_labels_info)
+        if res:
+            print('[Info]User asks to remove useless labels.')
+            ImageTools.remove_unless_labels()
 
 
 if __name__ == '__main__':

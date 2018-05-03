@@ -20,6 +20,7 @@ from pathos.multiprocessing import ProcessingPool as Pool
 from functools import partial
 from app import LabelTool
 import datetime
+import re
 
 
 class XMLTools:
@@ -295,10 +296,25 @@ class ImageTools:
 
     @staticmethod
     def generate_random_name(origin_name):
-        random_string = ''.join(random.choice(string.ascii_lowercase) for x in range(10))
+        random_string = 'jy' + ''.join(random.choice(string.ascii_lowercase) for x in range(4)) + \
+                        ''.join(random.choice(string.ascii_uppercase) for x in range(4)) + 'jy'
         names = origin_name.split('.')
         names[-2] = names[-2] + '_' + random_string
         return '.'.join(names)
+
+    @staticmethod
+    def label_has_image(label_name):
+        image_name = ImageTools.get_image_name(label_name)
+        return not image_name == ''
+
+    @staticmethod
+    def remove_unless_labels():
+        labels_dir = os.path.join('.', LABELS_PATH)
+        labels_list = glob.glob(os.path.join(labels_dir, '*.txt'))
+        copy_labels = [txt for txt in labels_list if re.match('.*jy[a-z]{4}[A-Z]{4}jy.txt', txt)]
+        useless_labels = [txt for txt in copy_labels if not ImageTools.label_has_image(txt.split('/')[-1])]
+        for txt_label in useless_labels:
+            os.remove(txt_label)
 
     @staticmethod
     def save_one_label(image_name, labeled_list):
@@ -524,8 +540,11 @@ class ImageTools:
             return False, (0, 0, 0)
 
     @staticmethod
-    def generate_noise_reduction_copy(image, labels_list):
-        x_min, y_min, x_max, y_max = ImageTools.calculate_labels(labels_list)
+    def generate_noise_reduction_copy(image, labels_list, optimize=True):
+        if optimize:
+            x_min, y_min, x_max, y_max = ImageTools.calculate_labels(labels_list)
+        else:
+            x_min, y_min, x_max, y_max = 1, 1, image.size[0] - 1, image.size[1] - 1
 
         for t in xrange(0, NOISE_REDUCTION_TIME):
             for x in xrange(x_min, x_max):
