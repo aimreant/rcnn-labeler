@@ -45,18 +45,18 @@ class LabelTool:
         self.frame = Frame(self.parent)
         self.frame.pack(fill=BOTH, expand=1)
         self.frame_file_list = Frame(self.frame)
-        self.frame_file_list.place(x=0, y=0, width=200, height=300)
+        self.frame_file_list.place(x=0, y=0, width=200, height=WINDOW_SIZE[1]-200)
         self.frame_label_list = Frame(self.frame)
-        self.frame_label_list.place(x=0, y=300, width=200, height=200)
+        self.frame_label_list.place(x=0, y=WINDOW_SIZE[1]-200, width=200, height=200)
         self.frame_label_button = Frame(self.frame)
-        self.frame_label_button.place(x=0, y=455, width=180, height=45)
+        self.frame_label_button.place(x=0, y=WINDOW_SIZE[1]-45, width=180, height=45)
         self.frame_image_area = Frame(self.frame)
         self.frame_image_area.place(x=200, y=0, width=IMAGE_AREA_SIZE[0], height=IMAGE_AREA_SIZE[1])
         self.frame_console = Frame(self.frame)
         self.frame_console.place(x=200, y=IMAGE_AREA_SIZE[1],
                                  width=IMAGE_AREA_SIZE[0], height=WINDOW_SIZE[1] - IMAGE_AREA_SIZE[1])
         self.frame_mode = Frame(self.frame)
-        self.frame_mode.place(x=800, y=0, width=100, height=500)
+        self.frame_mode.place(x=200+IMAGE_AREA_SIZE[0], y=0, width=100, height=WINDOW_SIZE[1])
 
         # Build file list ---------------------------------------------------
         self.file_list_label = Label(self.frame_file_list, text=text_images_directory, bg='gray', anchor='w')
@@ -134,30 +134,30 @@ class LabelTool:
 
         # Build mode frame -----------------------------------------------------
         self.mode_switch_label = Label(self.frame_mode, text=text_mode, bg='gray', anchor='w')
-        self.mode_switch_label.place(x=0, y=140, width=100, height=20)
+        self.mode_switch_label.place(x=0, y=WINDOW_SIZE[1]-360, width=100, height=20)
 
         self.button_view_mode = Button(self.frame_mode, text=text_view_mode, bitmap='hourglass',
                                        command=self.switch_view_mode)
-        self.button_view_mode.place(x=10, y=170, width=80, height=80)
+        self.button_view_mode.place(x=10, y=WINDOW_SIZE[1]-330, width=80, height=80)
         self.label_view_mode = Label(self.frame_mode, text=text_view_mode)
-        self.label_view_mode.place(x=0, y=250, width=100, height=20)
+        self.label_view_mode.place(x=0, y=WINDOW_SIZE[1]-250, width=100, height=20)
 
         self.button_create_mode = Button(self.frame_mode, text=text_create_mode, bitmap='info',
                                          command=self.switch_create_mode)
-        self.button_create_mode.place(x=10, y=280, width=80, height=80)
+        self.button_create_mode.place(x=10, y=WINDOW_SIZE[1]-220, width=80, height=80)
         self.label_create_mode = Label(self.frame_mode, text=text_create_mode)
-        self.label_create_mode.place(x=0, y=360, width=100, height=20)
+        self.label_create_mode.place(x=0, y=WINDOW_SIZE[1]-140, width=100, height=20)
 
         self.button_delete_mode = Button(self.frame_mode, text=text_delete_mode, bitmap='error',
                                          command=self.switch_delete_mode)
-        self.button_delete_mode.place(x=10, y=390, width=80, height=80)
+        self.button_delete_mode.place(x=10, y=WINDOW_SIZE[1]-110, width=80, height=80)
         self.label_delete_mode = Label(self.frame_mode, text=text_delete_mode)
-        self.label_delete_mode.place(x=0, y=470, width=100, height=20)
+        self.label_delete_mode.place(x=0, y=WINDOW_SIZE[1]-30, width=100, height=20)
 
         # Build checkbox -----------------------------------------------------
         # Copy options
         self.label_copy_option = Label(self.frame_console, text=text_copy_option, bg='gray', anchor='w')
-        self.label_copy_option.place(x=0, y=5, width=350, height=20)
+        self.label_copy_option.place(x=0, y=5, width=IMAGE_AREA_SIZE[0]-250, height=20)
 
         self.check_var_rotate_1 = IntVar()
         self.check_rotate_1 = Checkbutton(self.frame_console, text=text_rotate_1, variable=self.check_var_rotate_1)
@@ -203,17 +203,17 @@ class LabelTool:
 
         # Generate options
         self.label_generate_option = Label(self.frame_console, text=text_generate_option, bg='gray', anchor='w')
-        self.label_generate_option.place(x=345, y=5, width=250, height=20)
+        self.label_generate_option.place(x=IMAGE_AREA_SIZE[0]-250, y=5, width=250, height=20)
 
         self.check_var_generate_one = IntVar()
         self.check_generate_one = Checkbutton(self.frame_console, text=text_generate_one,
                                               variable=self.check_var_generate_one)
         self.check_generate_one.deselect()
-        self.check_generate_one.place(x=345, y=25, width=150, height=23)
+        self.check_generate_one.place(x=IMAGE_AREA_SIZE[0]-250, y=25, width=150, height=23)
 
         self.generate_xml_label_bottom = Button(self.frame_console, text=text_generate_xml,
                                                 command=self.create_xml_and_set)
-        self.generate_xml_label_bottom.place(x=345, y=122, width=250, height=23)
+        self.generate_xml_label_bottom.place(x=IMAGE_AREA_SIZE[0]-250, y=122, width=250, height=23)
 
         # Initial mouse and others in canvas
         self.mouse_state = {
@@ -270,7 +270,7 @@ class LabelTool:
         self.origin_images_list = []
         for sf in SUPPORT_FORMAT:
             self.origin_images_list += glob.glob(os.path.join(self.origin_images_dir, '*' + sf))
-            
+
         self.origin_images_list.sort()
 
         if len(self.origin_images_list) == 0:

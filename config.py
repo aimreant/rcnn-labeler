@@ -15,8 +15,8 @@ XML_PATH = 'xmls'
 FOLDER_NAME = 'VOC2007'
 COLORS = ['red', 'blue', 'cyan', 'green', 'black']
 SUPPORT_FORMAT = ['.jpg', '.jpeg', '.png', '.bmp']
-WINDOW_SIZE = 900, 500
-IMAGE_AREA_SIZE = 600, 350
+WINDOW_SIZE = 1000, 600  # 900, 500
+IMAGE_AREA_SIZE = 700, 450,  # 600, 350
 PYDB = 'label_pydb'
 
 # Mode config
