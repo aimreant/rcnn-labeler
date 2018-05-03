@@ -75,7 +75,7 @@ class LabelTool:
         self.file_list_label.place(x=0, y=0, width=200, height=20)
 
         self.file_list = Listbox(self.frame_file_list, selectmode=BROWSE, borderwidth=0, listvariable=self.images)
-        self.file_list.place(x=0, y=20, width=200, height=280)
+        self.file_list.place(x=0, y=20, width=200, height=WINDOW_SIZE[1]-220)
 
         self.file_list.bind('<ButtonRelease-1>', self.select_image)
         self.scrollbar_file_list = Scrollbar(self.frame_file_list)
