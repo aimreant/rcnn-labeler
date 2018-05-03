@@ -313,6 +313,11 @@ class LabelTool:
 
     def mark_file(self, index, handled=True):
         file_name = self.file_list.get(index)[5:]
+        if self.file_list.get(index)[:5] == ' [v] ' and handled:
+            return
+        if self.file_list.get(index)[:5] == ' [x] ' and not handled:
+            return
+        
         if handled:
             self.total_labeled_image_count += 1
             file_name_in_list_str = ' [v] ' + file_name
