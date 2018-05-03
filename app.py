@@ -230,9 +230,9 @@ class LabelTool:
         self.check_generate_one.deselect()
         self.check_generate_one.place(x=IMAGE_AREA_SIZE[0]-250, y=25, width=150, height=23)
 
-        self.generate_xml_label_bottom = Button(self.frame_console, text=text_generate_xml,
+        self.generate_xml_label_button = Button(self.frame_console, text=text_generate_xml,
                                                 command=self.create_xml_and_set)
-        self.generate_xml_label_bottom.place(x=IMAGE_AREA_SIZE[0]-250, y=122, width=250, height=23)
+        self.generate_xml_label_button.place(x=IMAGE_AREA_SIZE[0]-250, y=122, width=250, height=23)
 
         # Initial mouse and others in canvas
         self.mouse_state = {
