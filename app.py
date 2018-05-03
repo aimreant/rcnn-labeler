@@ -42,7 +42,7 @@ class LabelTool:
         if MAXIMIZE_WINDOWS:
             screen_width = self.parent.winfo_screenwidth()
             screen_height = self.parent.winfo_screenheight()
-            print('Setup Maximize windows...' + str(screen_width) + '*' + str(screen_height))
+            print('[Info]Setup maximize windows...' + str(screen_width) + '*' + str(screen_height))
 
             # re-config
             global WINDOW_SIZE
@@ -52,6 +52,7 @@ class LabelTool:
 
         self.parent.geometry(str(WINDOW_SIZE[0]) + 'x' + str(WINDOW_SIZE[1]))
         self.parent.resizable(width=False, height=False)
+        print('[Info]Building main frames...')
 
         # Build frames ------------------------------------------------------
         self.frame = Frame(self.parent)
@@ -71,6 +72,7 @@ class LabelTool:
         self.frame_mode.place(x=200+IMAGE_AREA_SIZE[0], y=0, width=100, height=WINDOW_SIZE[1])
 
         # Build file list ---------------------------------------------------
+        print('[Info]Building file list...')
         self.file_list_label = Label(self.frame_file_list, text=text_images_directory, bg='gray', anchor='w')
         self.file_list_label.place(x=0, y=0, width=200, height=20)
 
@@ -84,6 +86,7 @@ class LabelTool:
         self.scrollbar_file_list['command'] = self.file_list.yview
 
         # Build label list ---------------------------------------------------
+        print('[Info]Building label management area...')
         self.label_list_label = Label(self.frame_label_list, text=text_label, bg='gray', anchor='w')
         self.label_list_label.place(x=0, y=0, width=200, height=20)
 
@@ -108,6 +111,7 @@ class LabelTool:
         self.delete_label_bottom.place(x=90, y=20, width=90, height=23)
 
         # Build canvas area --------------------------------------------------
+        print('[Info]Building canvas area...')
         self.image_area = Canvas(self.frame_image_area, cursor='arrow',
                                  width=IMAGE_AREA_SIZE[0], height=IMAGE_AREA_SIZE[1],
                                  scrollregion=(0, 0, IMAGE_AREA_SIZE[0], IMAGE_AREA_SIZE[1]))
@@ -130,6 +134,7 @@ class LabelTool:
         self.image_area.bind("<Motion>", self.canvas_on_mouse_move)
 
         # Build operating area -----------------------------------------------------
+        print('[Info]Building operating area...')
         self.operating_label = Label(self.frame_mode, text=text_operating, bg='gray', anchor='w')
         self.operating_label.place(x=0, y=0, width=100, height=20)
 
@@ -145,6 +150,7 @@ class LabelTool:
         self.label_cur_cursor_2.place(x=20, y=115, width=60, height=20)
 
         # Build mode frame -----------------------------------------------------
+        print('[Info]Building mode area...')
         self.mode_switch_label = Label(self.frame_mode, text=text_mode, bg='gray', anchor='w')
         self.mode_switch_label.place(x=0, y=WINDOW_SIZE[1]-360, width=100, height=20)
 
@@ -168,6 +174,7 @@ class LabelTool:
 
         # Build checkbox -----------------------------------------------------
         # Copy options
+        print('[Info]Building options area...')
         self.label_copy_option = Label(self.frame_console, text=text_copy_option, bg='gray', anchor='w')
         self.label_copy_option.place(x=0, y=5, width=IMAGE_AREA_SIZE[0]-250, height=20)
 
@@ -256,12 +263,16 @@ class LabelTool:
         self.cur_file_name = ''
 
         try:
+            print('[Info]Loading labels from pydb...')
             self.load_labels_from_pydb()
         except EOFError:
-            pass
+            print('[Error]Loading labels from pydb FAIL...')
 
         # Initial operation
+        print('[Info]Loading images...')
         self.load_images()
+
+        print('[Info]Switching to view mode...')
         self.switch_view_mode()
 
         self.xml_tools = None
