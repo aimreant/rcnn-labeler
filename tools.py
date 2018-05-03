@@ -24,7 +24,6 @@ import re
 
 
 class XMLTools:
-
     def __init__(self):
         pass
 
@@ -114,7 +113,7 @@ class XMLTools:
 
                     image = cv2.imread(image_path)
                     image_size = image.shape
-                    
+
                     if 1 == index:
                         xml_name = file_name.replace('.txt', '.xml')
                         f = open(os.path.join(XML_PATH, xml_name), "w")
@@ -518,6 +517,7 @@ class ImageTools:
         For RGB
         Judge whether the pixel(x, y) is noise
         """
+
         def get_distance(p1, p2):
             if len(p1) != 3 and len(p2) != 3:
                 return 0
@@ -577,4 +577,3 @@ class ImageTools:
             return False
 
         return True
-
