@@ -38,6 +38,18 @@ class LabelTool:
         # Set main parameters -----------------------------------------------
         self.parent = master
         self.parent.title('RCNN-LABELER')
+
+        if MAXIMIZE_WINDOWS:
+            screen_width = self.parent.winfo_screenwidth()
+            screen_height = self.parent.winfo_screenheight()
+            print('Setup Maximize windows...' + str(screen_width) + '*' + str(screen_height))
+
+            # re-config
+            global WINDOW_SIZE
+            WINDOW_SIZE = screen_width - MAXIMIZE_BLANK_BORDER, screen_height - MAXIMIZE_BLANK_BORDER  # 900, 500
+            global IMAGE_AREA_SIZE
+            IMAGE_AREA_SIZE = WINDOW_SIZE[0] - 300, WINDOW_SIZE[1] - 150,
+
         self.parent.geometry(str(WINDOW_SIZE[0]) + 'x' + str(WINDOW_SIZE[1]))
         self.parent.resizable(width=False, height=False)
 
