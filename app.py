@@ -317,7 +317,7 @@ class LabelTool:
             return
         if self.file_list.get(index)[:5] == ' [x] ' and not handled:
             return
-        
+
         if handled:
             self.total_labeled_image_count += 1
             file_name_in_list_str = ' [v] ' + file_name
@@ -464,6 +464,9 @@ class LabelTool:
         self.label_cur_cursor_1.config(text='x : ' + str(cur_x_origin))
         self.label_cur_cursor_2.config(text='y : ' + str(cur_y_origin))
 
+        if not 0 < cur_x < self.cur_image.size[0] or not 0 < cur_y < self.cur_image.size[1]:
+            return
+
         if self.cur_mode == CREATE_MODE:
             if not self.tk_image:
                 # If the image not exists
@@ -527,6 +530,9 @@ class LabelTool:
         cur_x, cur_y, cur_x_origin, cur_y_origin = self.get_current_xy_with_scrollbar(event.x, event.y)
         self.label_cur_cursor_1.config(text='x : ' + str(cur_x_origin))
         self.label_cur_cursor_2.config(text='y : ' + str(cur_y_origin))
+
+        if not 0 < cur_x < self.cur_image.size[0] or not 0 < cur_y < self.cur_image.size[1]:
+            return
 
         if self.cur_mode == CREATE_MODE:
             if self.tk_image:
