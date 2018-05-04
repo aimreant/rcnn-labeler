@@ -508,7 +508,7 @@ class ImageTools:
 
     @staticmethod
     def generate_edge_enhance_copy(image, labels_list):
-        image = image.filter(ImageFilter.EDGE_ENHANCE_MORE)
+        image = image.filter(ImageFilter.EDGE_ENHANCE)
         return image, labels_list
 
     @staticmethod
